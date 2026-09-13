@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Universal AI Client — 平板端</title>
+<style>
+:root{--bg:oklch(14.2% 0.012 244);--surface:oklch(18.8% 0.014 244);--surface2:oklch(22.5% 0.016 244);--border:oklch(26% 0.015 264);--fg:oklch(97% 0.004 240);--muted:oklch(66% 0.013 240);--accent:oklch(62% 0.17 152);--font-mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--font-body:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:oklch(9% 0.01 244);color:var(--fg);font-family:var(--font-body)}
+.frame{width:min(820px, 96vw);height:min(1180px, 92vh);margin:18px auto;background:var(--bg);border:1px solid oklch(1 0 0 / 0.1);border-radius:22px;overflow:hidden;display:grid;grid-template-rows:28px 44px 1fr;box-shadow:0 20px 60px oklch(0% 0 0 / 0.5)}
+.top{border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);font:600 11px var(--font-mono)}
+.bar{height:44px;display:flex;align-items:center;gap:10px;padding:0 12px;background:oklch(16% 0.01 244);border-bottom:1px solid var(--border)}
+.tab{padding:7px 12px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font:600 13px var(--font-body);cursor:pointer}
+.tab.active{background:var(--fg);color:oklch(14% 0.01 244);border-color:var(--fg)}
+.body{display:grid;grid-template-columns:220px 1fr;overflow:hidden}
+.side{background:var(--surface);border-right:1px solid var(--border);overflow:auto;padding:10px}
+.main{background:oklch(15.5% 0.012 244);display:flex;flex-direction:column;overflow:hidden;position:relative}
+.view{display:none;flex:1;overflow:auto;padding:14px}.view.active{display:block}
+.bubble{max-width:82%;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.6;border:1px solid var(--border)}
+.bubble.ai{background:var(--surface2)} .bubble.user{background:var(--accent);color:oklch(14% 0.01 244);border-color:var(--accent);margin-left:auto}
+.sheet{position:absolute;left:12px;right:12px;bottom:12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;display:none;box-shadow:0 12px 30px oklch(0% 0 0 / 0.4)}
+.sheet.open{display:block}
+.chip{font:600 11px var(--font-mono);padding:6px 9px;border-radius:999px;border:1px solid var(--border);background:oklch(1 0 0 / 0.04);color:var(--muted)}
+.chip.accent{border-color:oklch(62% 0.17 152 / 0.4);color:var(--accent);background:oklch(62% 0.17 152 / 0.12)}
+</style>
+</head>
+<body>
+<div class="frame" data-od-id="tablet-frame">
+  <div class="top">平板 · 820×1180 · 分栏 + 底部 Sheet</div>
+  <div class="bar">
+    <div style="font:700 13px var(--font-mono)">AI Client</div>
+    <button class="tab active" data-t="chat">对话</button>
+    <button class="tab" data-t="image">画图</button>
+    <button class="tab" data-t="video">视频</button>
+    <button class="tab" data-t="settings">设置</button>
+    <span style="margin-left:auto" class="chip accent">● 已连接</span>
+    <button onclick="toggleSheet()" style="padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer">参数</button>
+  </div>
+  <div class="body">
+    <aside class="side">
+      <button style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:oklch(14% 0.01 244);font:600 13px var(--font-body)">＋ 新对话</button>
+      <div style="font:600 11px var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px">今天</div>
+      <div style="padding:10px;border-radius:10px;background:var(--surface2);border:1px solid var(--border)"><div style="font:600 13px">Flutter 架构</div><div style="font:11px;color:var(--muted);font-family:var(--font-mono)">gpt-4o</div></div>
+      <div style="padding:10px;border-radius:10px;border:1px solid transparent"><div style="font:600 13px">API 设计</div><div style="font:11px;color:var(--muted);font-family:var(--font-mono)">Claude</div></div>
+      <div style="margin-top:12px;font:11px var(--font-mono);color:var(--muted)">Sheet 承载参数，适合横竖屏切换</div>
+    </aside>
+    <main class="main">
+      <div class="view active" id="t-chat" style="display:grid;gap:10px">
+        <div class="bubble ai">你好，有什么可以帮助？平板端保留双栏，主区可横向浏览。</div>
+        <div class="bubble user">帮我生成一张月球橘猫</div>
+        <div class="bubble ai">已为你切到画图，如需直接生成可在画图页一键执行。</div>
+      </div>
+      <div class="view" id="t-image">
+        <div style="display:grid;gap:10px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px"><div style="font:600 11px var(--font-mono);color:var(--muted)">PROMPT</div><div style="font:13px;margin-top:6px">一只坐在月球上的橘猫，霓虹背景</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid var(--border);display:grid;place-items:center;background:radial-gradient(300px 160px at 30% 15%, oklch(62% 0.17 152 / 0.12), transparent 60%), linear-gradient(180deg, oklch(22% 0.02 250), oklch(18% 0.014 244))"><svg width="100%" height="100%" viewBox="0 0 400 400" role="img" aria-label="平板生成图 1"><rect width="400" height="400" fill="transparent"/><text x="50%" y="50%" text-anchor="middle" fill="oklch(96% 0.005 240 / 0.85)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">TAB · SDXL</text></svg></div>
+            <div style="aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid var(--border);display:grid;place-items:center;background:oklch(18% 0.014 244)"><svg width="100%" height="100%" viewBox="0 0 400 400" role="img" aria-label="平板生成图 2"><rect width="400" height="400" fill="oklch(20% 0.018 250)"/><text x="50%" y="50%" text-anchor="middle" fill="oklch(96% 0.005 240 / 0.85)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">已保存</text></svg></div>
+          </div>
+        </div>
+      </div>
+      <div class="view" id="t-video">
+        <div style="aspect-ratio:16/9;border-radius:14px;border:1px solid var(--border);background:var(--surface2);display:grid;place-items:center"><div style="text-align:center"><div style="width:40px;height:40px;border:3px solid oklch(1 0 0 / 0.14);border-top-color:var(--accent);border-radius:50%;margin:0 auto;animation:spin 1s linear infinite"></div><div style="font:600 13px;margin-top:8px">Generating… 67%</div></div></div>
+      </div>
+      <div class="view" id="t-settings">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px"><div style="font:700 13px">Providers</div><div style="font:11px;color:var(--muted);font-family:var(--font-mono)">OpenAI / Compatible / 自建</div></div>
+      </div>
+      <div class="sheet" id="sheet">
+        <div style="display:flex;align-items:center;gap:8px"><div style="font:700 13px">参数</div><span class="chip accent">Streaming 开</span><button onclick="toggleSheet()" style="margin-left:auto;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2)">✕</button></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+          <div><div style="font:600 11px var(--font-mono);color:var(--muted)">温度 0.7</div><input type="range" style="width:100%"></div>
+          <div><div style="font:600 11px var(--font-mono);color:var(--muted)">模型</div><select style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:oklch(12% 0.01 244);color:var(--fg)"><option>gpt-4o</option></select></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<script>
+const tabs=document.querySelectorAll('.tab[data-t]');
+const views={chat:document.getElementById('t-chat'),image:document.getElementById('t-image'),video:document.getElementById('t-video'),settings:document.getElementById('t-settings')};
+tabs.forEach(t=>t.addEventListener('click',()=>{
+  tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active');
+  Object.entries(views).forEach(([k,el])=>el.style.display=k===t.dataset.t?'block':'none');
+  if(t.dataset.t==='chat') views.chat.style.display='grid';
+}));
+function toggleSheet(){document.getElementById('sheet').classList.toggle('open')}
+</script>
+</body>
+</html>

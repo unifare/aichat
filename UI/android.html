@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Universal AI Client — Android</title>
+<style>
+:root{--bg:oklch(14.2% 0.012 244);--surface:oklch(18.8% 0.014 244);--surface2:oklch(22.5% 0.016 244);--border:oklch(26% 0.015 264);--fg:oklch(97% 0.004 240);--muted:oklch(66% 0.013 240);--accent:oklch(62% 0.17 152);--font-mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--font-body:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:oklch(9% 0.01 244);color:var(--fg);font-family:var(--font-body)}
+.phone{width:min(390px, 96vw);height:min(844px, 92vh);margin:14px auto;background:var(--bg);border:8px solid oklch(12% 0.01 244);border-radius:28px;overflow:hidden;display:grid;grid-template-rows:28px 52px 1fr 64px;box-shadow:0 20px 60px oklch(0% 0 0 / 0.55);position:relative}
+.island{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:88px;height:18px;background:oklch(12% 0.01 244);border-radius:999px;z-index:5}
+.bar{border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 12px;background:oklch(16% 0.01 244)}
+.view{display:none;flex:1;overflow:auto;padding:12px}.view.active{display:flex;flex-direction:column;gap:10px}
+.bubble{max-width:86%;padding:10px 12px;border-radius:16px;font-size:14px;line-height:1.6;border:1px solid var(--border)}
+.bubble.ai{background:var(--surface2)} .bubble.user{background:var(--accent);color:oklch(14% 0.01 244);border-color:var(--accent);margin-left:auto}
+.composer{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);background:var(--surface)}
+.input{flex:1;padding:11px 12px;border-radius:14px;border:1px solid var(--border);background:var(--surface2);color:var(--fg);min-height:44px}
+.send{width:44px;height:44px;border-radius:14px;border:1px solid var(--accent);background:var(--accent);color:oklch(14% 0.01 244);display:grid;place-items:center;cursor:pointer}
+.bottom{border-top:1px solid var(--border);background:var(--surface);display:grid;grid-template-columns:repeat(4,1fr);padding:6px}
+.nav{padding:6px 0;display:grid;place-items:center;gap:4px;color:var(--muted);font:600 11px var(--font-body);cursor:pointer;border-radius:10px}
+.nav.active{color:var(--accent);background:oklch(62% 0.17 152 / 0.12)}
+.drawer{position:absolute;inset:28px 0 64px 0;background:oklch(0% 0 0 / 0.45);display:none}
+.drawer.open{display:block}
+.panel{width:78%;height:100%;background:var(--surface);border-right:1px solid var(--border);padding:12px;overflow:auto}
+.chip{font:600 11px var(--font-mono);padding:6px 8px;border-radius:999px;border:1px solid var(--border);background:oklch(1 0 0 / 0.04);color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="phone" data-od-id="android-frame">
+  <div class="island"></div>
+  <div style="display:flex;align-items:center;justify-content:center;color:var(--muted);font:600 10px var(--font-mono);letter-spacing:0.06em">ANDROID · Pixel · 48dp 触控</div>
+  <div class="bar">
+    <button onclick="toggleDrawer()" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer">☰</button>
+    <div style="font:700 14px var(--font-body)">AI Client</div>
+    <span style="margin-left:auto" class="chip">gpt-4o</span>
+    <button style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted)">⚙</button>
+  </div>
+  <div style="overflow:hidden;display:flex;flex-direction:column;background:oklch(15.5% 0.012 244)">
+    <div class="view active" id="a-chat">
+      <div class="bubble ai">你好，有什么可以帮助？</div>
+      <div class="bubble user">帮我写个 Dio 拦截器</div>
+      <div class="bubble ai">已生成，支持 token 刷新与重试，见代码块。</div>
+      <div style="border:1px dashed var(--border);border-radius:12px;padding:10px;text-align:center;color:var(--muted);font:12px var(--font-mono)">空状态 · 点击「新对话」开始</div>
+      <div class="composer"><input class="input" placeholder="输入消息…"><button class="send">➤</button></div>
+    </div>
+    <div class="view" id="a-image">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px"><div style="font:600 11px var(--font-mono);color:var(--muted)">PROMPT</div><div style="font:13px;margin-top:4px">一只坐在月球上的橘猫</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid var(--border);display:grid;place-items:center;background:radial-gradient(300px 160px at 30% 15%, oklch(62% 0.17 152 / 0.14), transparent 60%), linear-gradient(180deg, oklch(22% 0.02 250), oklch(18% 0.014 244))"><svg width="100%" height="100%" viewBox="0 0 400 400" role="img" aria-label="Android 生成图 1"><rect width="400" height="400" fill="transparent"/><text x="50%" y="50%" text-anchor="middle" fill="oklch(96% 0.005 240 / 0.85)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">AND · SDXL</text></svg></div>
+        <div style="aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid var(--border);display:grid;place-items:center;background:oklch(18% 0.014 244)"><svg width="100%" height="100%" viewBox="0 0 400 400" role="img" aria-label="Android 生成图 2"><rect width="400" height="400" fill="oklch(20% 0.018 250)"/><text x="50%" y="50%" text-anchor="middle" fill="oklch(96% 0.005 240 / 0.85)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">已保存 · cached</text></svg></div>
+        <div style="aspect-ratio:1;border-radius:12px;display:grid;place-items:center;border:1px solid var(--border);background:var(--surface2)"><span style="font:600 11px var(--font-mono);color:var(--muted)">生成中… 67%</span></div>
+        <div style="aspect-ratio:1;border-radius:12px;display:grid;place-items:center;border:1px solid oklch(62% 0.19 26 / 0.25);background:oklch(62% 0.19 26 / 0.08)"><span style="font:700 11px;color:oklch(62% 0.19 26)">失败 · 重试</span></div>
+      </div>
+    </div>
+    <div class="view" id="a-video">
+      <div style="aspect-ratio:16/9;border-radius:14px;border:1px solid var(--border);background:var(--surface2);display:grid;place-items:center"><div style="text-align:center"><div style="width:36px;height:36px;border:3px solid oklch(1 0 0 / 0.14);border-top-color:var(--accent);border-radius:50%;margin:0 auto;animation:spin 1s linear infinite"></div><div style="font:600 12px;margin-top:8px">Generating… 67%</div></div></div>
+      <div style="display:flex;gap:8px"><span class="chip">10s</span><span class="chip">Sora</span><span class="chip">轮询 3s</span></div>
+    </div>
+    <div class="view" id="a-settings">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px"><div style="font:700 13px">OpenAI Compatible</div><div style="font:11px;color:var(--muted);font-family:var(--font-mono)">https://ai.company.local/v1</div><div style="margin-top:8px;display:grid;gap:8px"><input style="padding:9px;border-radius:8px;border:1px solid var(--border);background:oklch(12% 0.01 244);color:var(--fg);font:12px var(--font-mono)" value="https://ai.company.local/v1"><button style="padding:10px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:oklch(14% 0.01 244);font:600 13px">Test Connection</button></div></div>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="nav active" data-n="chat" onclick="switchN('chat')"><span>💬</span><span>对话</span></div>
+    <div class="nav" data-n="image" onclick="switchN('image')"><span>🖼</span><span>画图</span></div>
+    <div class="nav" data-n="video" onclick="switchN('video')"><span>🎬</span><span>视频</span></div>
+    <div class="nav" data-n="settings" onclick="switchN('settings')"><span>⚙</span><span>设置</span></div>
+  </div>
+  <div class="drawer" id="drawer"><div class="panel"><div style="font:700 13px">历史会话</div><div style="margin-top:10px;padding:10px;border-radius:10px;background:var(--surface2);border:1px solid var(--border)"><div style="font:600 13px">Flutter 架构</div><div style="font:11px;color:var(--muted);font-family:var(--font-mono)">gpt-4o · 2 分钟前</div></div><button onclick="toggleDrawer()" style="margin-top:12px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2)">关闭</button></div><div style="position:absolute;inset:0;left:78%" onclick="toggleDrawer()"></div></div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<script>
+function switchN(n){
+  document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.n===n));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('a-'+n).classList.add('active');
+}
+function toggleDrawer(){document.getElementById('drawer').classList.toggle('open')}
+</script>
+</body>
+</html>

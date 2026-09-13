@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Universal AI Client — 全平台工作台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(14.2% 0.012 244);
+  --surface: oklch(18.8% 0.014 244);
+  --surface2: oklch(22.8% 0.016 244);
+  --surface3: oklch(26% 0.015 244);
+  --border: oklch(27% 0.015 264);
+  --border-soft: oklch(1 0 0 / 0.07);
+  --fg: oklch(97% 0.004 240);
+  --muted: oklch(68% 0.012 240);
+  --muted2: oklch(56% 0.01 240);
+  --accent: oklch(62% 0.17 152);
+  --accent-hover: oklch(58% 0.165 152);
+  --accent-soft: oklch(62% 0.17 152 / 0.12);
+  --warn: oklch(78% 0.14 72);
+  --danger: oklch(62% 0.19 26);
+  --success: oklch(66% 0.14 152);
+  --r-lg: 16px; --r-md: 12px; --r-sm: 8px; --r-pill: 999px;
+  --font-display: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --shadow-soft: 0 8px 32px oklch(0% 0 0 / 0.45), 0 1px 0 oklch(1 0 0 / 0.04) inset;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:oklch(1 0 0 / 0.13);border-radius:999px}
+::-webkit-scrollbar-track{background:transparent}
+
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:0 14px;height:48px;background:oklch(15.5% 0.01 244);border-bottom:1px solid var(--border)}
+.dots{display:flex;gap:6px;align-items:center}
+.dot{width:11px;height:11px;border-radius:50%}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:oklch(14% 0.01 244);font:700 12px var(--font-mono);letter-spacing:-0.04em;flex:0 0 auto}
+.brand-name{font:700 13px var(--font-body);letter-spacing:-0.02em;white-space:nowrap}
+.brand-sub{font:500 11px var(--font-mono);color:var(--muted);letter-spacing:0.02em;white-space:nowrap}
+.nav-tabs{display:flex;gap:6px;margin-left:10px;overflow:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.tab{padding:7px 13px;border-radius:999px;border:1px solid transparent;color:var(--muted);font:600 12.5px var(--font-body);letter-spacing:-0.01em;cursor:pointer;background:transparent;white-space:nowrap;transition:background .15s, color .15s, border-color .15s}
+.tab:hover{background:oklch(1 0 0 / 0.05);color:var(--fg)}
+.tab.active{background:var(--fg);color:oklch(14% 0.01 244);border-color:var(--fg)}
+.tab:focus-visible{outline-offset:2px}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.chip{font:600 11px var(--font-mono);letter-spacing:0.03em;padding:7px 10px;border-radius:999px;border:1px solid var(--border);background:oklch(1 0 0 / 0.04);color:var(--muted);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.chip.accent{border-color:oklch(62% 0.17 152 / 0.38);color:var(--accent);background:var(--accent-soft)}
+.chip.warn{border-color:oklch(78% 0.14 72 / 0.28);color:var(--warn);background:oklch(78% 0.14 72 / 0.1)}
+.icon-btn{width:36px;height:36px;display:grid;place-items:center;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;flex:0 0 auto;transition:background .15s, color .15s, border-color .15s}
+.icon-btn:hover{background:var(--surface2);color:var(--fg);border-color:oklch(1 0 0 / 0.12)}
+.icon-btn:active{transform:translateY(1px)}
+.icon-btn svg{width:16px;height:16px;stroke-width:1.7}
+
+.device-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.device-bar .label{font:600 11px var(--font-mono);letter-spacing:0.07em;text-transform:uppercase;color:var(--muted2)}
+.device-group{display:flex;gap:6px}
+.device-btn{padding:7px 11px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font:600 12px var(--font-body);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.device-btn.active{background:var(--fg);color:oklch(14% 0.01 244);border-color:var(--fg)}
+.state-group{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.state-btn{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:oklch(1 0 0 / 0.03);color:var(--muted);font:600 11px var(--font-mono);cursor:pointer}
+.state-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+.app{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:280px 1fr 340px;min-height:calc(100vh - 48px - 41px)}
+@media(max-width:1100px){.app{grid-template-columns:260px 1fr}.right{display:none}}
+@media(max-width:760px){.app{grid-template-columns:1fr}.sidebar{display:none}}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.side-head{padding:14px;border-bottom:1px solid var(--border);display:grid;gap:10px}
+.btn-primary{width:100%;padding:11px 14px;border-radius:11px;border:1px solid var(--accent);background:var(--accent);color:oklch(14% 0.01 244);font:700 13px var(--font-body);letter-spacing:-0.01em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s, transform .08s}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-primary:active{transform:translateY(1px)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{padding:9px 11px;border-radius:10px;border:1px solid var(--border);background:oklch(1 0 0 / 0.03);color:var(--muted);font:600 12.5px var(--font-body);cursor:pointer;transition:background .15s, color .15s}
+.btn-ghost:hover{background:var(--surface2);color:var(--fg)}
+.btn-ghost:active{transform:translateY(1px)}
+.section-label{font:600 11px var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--muted2);padding:14px 14px 7px}
+.conv{padding:10px 11px;margin:0 8px;border-radius:11px;cursor:pointer;border:1px solid transparent;display:grid;gap:4px;transition:background .15s, border-color .15s}
+.conv:hover{background:var(--surface2)}
+.conv.active{background:var(--surface2);border-color:var(--border)}
+.conv:focus-visible{outline:2px solid var(--accent);outline-offset:-1px}
+.conv-title{font:600 13px var(--font-body);letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-meta{font:500 11px var(--font-mono);color:var(--muted);display:flex;gap:7px;align-items:center}
+.pill{font:600 10px var(--font-mono);letter-spacing:0.04em;padding:3px 7px;border-radius:999px;background:oklch(1 0 0 / 0.06);border:1px solid var(--border);color:var(--muted)}
+.side-foot{margin-top:auto;padding:12px;border-top:1px solid var(--border);display:grid;gap:10px}
+.health{height:6px;background:oklch(1 0 0 / 0.08);border-radius:999px;overflow:hidden}
+.health>span{display:block;height:100%;background:var(--accent);border-radius:999px}
+
+.main{background:oklch(15.2% 0.012 244);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.main-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:oklch(16% 0.01 244 / 0.7);backdrop-filter:blur(8px);flex-wrap:wrap}
+.main-head h2{margin:0;font:700 14px var(--font-body);letter-spacing:-0.02em}
+.model-sel{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.select{padding:8px 10px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--fg);font:500 13px var(--font-body);min-height:36px}
+.select:focus-visible{outline:2px solid var(--accent)}
+.content{flex:1;overflow:auto;padding:18px 16px}
+@media(max-width:760px){.content{padding:14px 12px}}
+.view{display:none;flex-direction:column;flex:1;min-height:0}
+.view.active{display:flex}
+.chat-stream{display:grid;gap:14px;max-width:740px;margin:0 auto;width:100%}
+.bubble{max-width:78%;padding:12px 14px;border-radius:16px;line-height:1.65;font-size:14px;border:1px solid var(--border);position:relative}
+@media(max-width:560px){.bubble{max-width:88%}}
+.bubble.ai{background:var(--surface2);border-color:var(--border)}
+.bubble.user{background:var(--accent);color:oklch(14% 0.01 244);border-color:var(--accent);margin-left:auto}
+.bubble .meta{font:600 11px var(--font-mono);letter-spacing:0.04em;color:var(--muted);margin-bottom:6px;text-transform:uppercase}
+.bubble.user .meta{color:oklch(14% 0.01 244 / 0.72)}
+.codeblock{margin-top:10px;background:oklch(11.5% 0.01 244);border:1px solid var(--border);border-radius:11px;overflow:hidden}
+.code-head{display:flex;align-items:center;gap:8px;padding:8px 11px;border-bottom:1px solid var(--border);font:600 11px var(--font-mono);letter-spacing:0.04em;color:var(--muted);background:oklch(1 0 0 / 0.02)}
+.code{padding:11px;font:12.5px var(--font-mono);line-height:1.65;white-space:pre;overflow:auto;color:oklch(88% 0.01 240);max-width:65ch}
+.inline-code{font-family:var(--font-mono);background:oklch(1 0 0 / 0.06);padding:2px 6px;border-radius:6px;border:1px solid var(--border);font-size:12.5px}
+.composer{padding:12px;border-top:1px solid var(--border);background:var(--surface);display:grid;gap:8px}
+.composer-row{display:flex;gap:8px;align-items:flex-end}
+.textarea{flex:1;min-height:46px;max-height:120px;padding:11px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--fg);resize:none;outline:none;font-size:14px;line-height:1.5}
+.textarea::placeholder{color:var(--muted2)}
+.textarea:focus{border-color:oklch(62% 0.17 152 / 0.5);box-shadow:0 0 0 3px oklch(62% 0.17 152 / 0.12)}
+.send{width:44px;height:44px;border-radius:11px;border:1px solid var(--accent);background:var(--accent);color:oklch(14% 0.01 244);display:grid;place-items:center;cursor:pointer;flex:0 0 auto;transition:background .15s, transform .08s}
+.send:hover{background:var(--accent-hover)}
+.send:active{transform:translateY(1px)}
+.send:disabled{opacity:.5;cursor:not-allowed}
+.helper{font:500 11px var(--font-mono);color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.card{border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface);overflow:hidden;box-shadow:var(--shadow-soft)}
+.empty{border:1px dashed var(--border);border-radius:14px;padding:20px;text-align:center;color:var(--muted);background:oklch(1 0 0 / 0.02);display:grid;gap:8px;place-items:center}
+.empty h3{margin:0;font:700 13px var(--font-body);letter-spacing:-0.01em;color:var(--fg)}
+.empty p{margin:0;font-size:13px;line-height:1.6;max-width:42ch}
+
+.image-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.image-grid{grid-template-columns:1fr}}
+.card-img{aspect-ratio:1;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);position:relative;display:grid;place-items:center}
+.card-img .ph{width:100%;height:100%;display:grid;place-items:center;background:
+  radial-gradient(420px 220px at 30% 15%, oklch(62% 0.17 152 / 0.14), transparent 60%),
+  linear-gradient(180deg, oklch(22% 0.02 250), oklch(18% 0.014 244))}
+.card-img img.ph-img{width:100%;height:100%;object-fit:cover;display:block}
+.progress{height:6px;background:oklch(1 0 0 / 0.08);border-radius:999px;overflow:hidden}
+.progress>span{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .6s cubic-bezier(0.2,0,0,1)}
+.video-box{aspect-ratio:16/9;border-radius:14px;border:1px solid var(--border);background:var(--surface2);display:grid;place-items:center;position:relative;overflow:hidden}
+.play{width:54px;height:54px;border-radius:50%;background:var(--fg);color:oklch(14% 0.01 244);display:grid;place-items:center;border:none;cursor:pointer;box-shadow:0 8px 20px oklch(0% 0 0 / 0.3)}
+.provider-card{border:1px solid var(--border);border-radius:12px;background:var(--surface2);overflow:hidden}
+.provider-head{padding:12px 13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 6px oklch(66% 0.14 152 / 0.14)}
+.input{width:100%;padding:10px 11px;border-radius:9px;border:1px solid var(--border);background:oklch(11.8% 0.01 244);color:var(--fg);font:500 13px var(--font-mono)}
+.input:focus{outline:none;border-color:oklch(62% 0.17 152 / 0.5);box-shadow:0 0 0 3px oklch(62% 0.17 152 / 0.12)}
+.label{font:600 11px var(--font-mono);letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:640px){.row2{grid-template-columns:1fr}}
+.right{border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:auto}
+.right-head{padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:2}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(8px);background:var(--fg);color:oklch(14% 0.01 244);padding:11px 16px;border-radius:999px;font:600 12px var(--font-body);box-shadow:0 12px 30px oklch(0% 0 0 / 0.3);opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;z-index:50}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.drawer{position:fixed;inset:0;z-index:40;display:none}
+.drawer.open{display:block}
+.drawer-bg{position:absolute;inset:0;background:oklch(0% 0 0 / 0.48);backdrop-filter:blur(2px)}
+.drawer-panel{position:absolute;left:0;top:0;bottom:0;width:min(86%, 340px);background:var(--surface);border-right:1px solid var(--border);padding:14px;overflow:auto;box-shadow:var(--shadow-soft)}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:45;display:none}
+.sheet.open{display:block}
+.sheet-card{margin:0 auto;max-width:720px;background:var(--surface);border:1px solid var(--border);border-bottom:none;border-radius:16px 16px 0 0;padding:14px;box-shadow:0 -12px 40px oklch(0% 0 0 / 0.45)}
+@media(prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{50%{opacity:0}}
+.frame-note{font:500 11px var(--font-mono);color:var(--muted);text-align:center;padding:8px 10px;border-top:1px solid var(--border);background:oklch(1 0 0 / 0.02)}
+.preview-shell{transition:all .28s cubic-bezier(0.2,0,0,1)}
+.preview-shell.mode-tablet{max-width:820px;margin:12px auto;border:1px solid oklch(1 0 0 / 0.08);border-radius:20px;overflow:hidden;box-shadow:0 22px 60px oklch(0% 0 0 / 0.55)}
+.preview-shell.mode-phone{max-width:390px;margin:12px auto;border:8px solid oklch(12% 0.01 244);border-radius:26px;overflow:hidden;box-shadow:0 22px 60px oklch(0% 0 0 / 0.6)}
+.preview-shell.mode-phone .app{grid-template-columns:1fr}
+.preview-shell.mode-phone .sidebar,.preview-shell.mode-phone .right{display:none !important}
+.preview-shell.mode-phone .content{padding:12px}
+.preview-shell.mode-tablet .app{grid-template-columns:220px 1fr}
+.preview-shell.mode-tablet .right{display:none}
+</style>
+</head>
+<body>
+<header class="topbar" data-od-id="topbar">
+  <div class="dots" aria-hidden="true"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span></div>
+  <div class="brand" data-od-id="brand">
+    <div class="logo" aria-hidden="true">AI</div>
+    <div>
+      <div class="brand-name">Universal AI Client</div>
+      <div class="brand-sub">全平台 · Provider 抽象</div>
+    </div>
+  </div>
+  <nav class="nav-tabs" aria-label="主导航" data-od-id="top-tabs">
+    <button class="tab active" data-tab="chat" aria-current="page">对话</button>
+    <button class="tab" data-tab="image">画图</button>
+    <button class="tab" data-tab="video">视频</button>
+    <button class="tab" data-tab="settings">设置</button>
+  </nav>
+  <div class="top-actions">
+    <span class="chip accent" id="providerChip" data-od-id="provider-chip"><span style="width:7px;height:7px;border-radius:50%;background:var(--accent)"></span> OpenAI Compatible · 已连接</span>
+    <span class="chip" style="display:none" id="latencyChip">延迟 86ms</span>
+    <button class="icon-btn" id="openDrawerBtn" aria-label="打开会话抽屉" title="会话">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <button class="icon-btn" aria-label="快捷键" title="⌘K">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6M9 15h6"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="device-bar" data-od-id="device-bar">
+  <span class="label">预览载体</span>
+  <div class="device-group" role="group" aria-label="切换预览载体">
+    <button class="device-btn active" data-mode="desktop">桌面 1440</button>
+    <button class="device-btn" data-mode="tablet">平板 820</button>
+    <button class="device-btn" data-mode="phone">手机 390</button>
+    <button class="device-btn" data-mode="responsive">自适应</button>
+  </div>
+  <span class="chip" style="display:none" id="vpChip">自适应</span>
+  <div class="state-group" role="group" aria-label="演示状态">
+    <span class="label">状态演示</span>
+    <button class="state-btn" data-state="empty">空</button>
+    <button class="state-btn" data-state="loading">加载</button>
+    <button class="state-btn" data-state="error">错误</button>
+    <button class="state-btn active" data-state="done">完成</button>
+  </div>
+</div>
+
+<div class="preview-shell mode-desktop" id="previewShell">
+<div class="app" data-od-id="app-shell">
+  <aside class="sidebar" data-od-id="sidebar" aria-label="会话侧栏">
+    <div class="side-head">
+      <button class="btn-primary" id="newChatBtn" data-od-id="btn-new-chat">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        新对话
+      </button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-ghost" style="flex:1" data-od-id="btn-templates">模板</button>
+        <button class="btn-ghost" style="flex:1">导入</button>
+      </div>
+    </div>
+    <div class="section-label">今天</div>
+    <button class="conv active" data-conv="1" data-od-id="conv-1">
+      <span class="conv-title">Flutter 全平台架构讨论</span>
+      <span class="conv-meta"><span>2 分钟前</span><span class="pill">GPT-4o</span></span>
+    </button>
+    <button class="conv" data-conv="2" data-od-id="conv-2">
+      <span class="conv-title">API 设计 · Provider 抽象</span>
+      <span class="conv-meta"><span>1 小时前</span><span class="pill">Claude 3.5</span></span>
+    </button>
+    <button class="conv" data-conv="3" data-od-id="conv-3">
+      <span class="conv-title">画图提示词优化</span>
+      <span class="conv-meta"><span>昨天</span><span class="pill">SDXL</span></span>
+    </button>
+    <div class="section-label">历史会话 · 本地 Drift</div>
+    <div style="display:grid;gap:6px;padding:0 0 8px">
+      <button class="conv" style="opacity:.92"><span class="conv-title">视频生成 · 未来城市跑车</span><span class="conv-meta"><span>3 天前</span><span class="pill">Sora</span></span></button>
+      <button class="conv" style="opacity:.82"><span class="conv-title">空状态引导会话</span><span class="conv-meta"><span>—</span><span class="pill">未开始</span></span></button>
+    </div>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span style="font:600 12px var(--font-body)">已连接 3 个 Provider</span>
+        <span style="margin-left:auto;font:500 11px var(--font-mono);color:var(--muted)">延迟 86ms</span>
+      </div>
+      <div class="health" aria-hidden="true"><span style="width:86%"></span></div>
+      <button class="btn-ghost" id="manageProviderBtn" data-od-id="btn-manage-provider">管理 Provider →</button>
+      <div class="frame-note">会话与任务本地持久化 · Dio · Riverpod · Drift · flutter_secure_storage</div>
+    </div>
+  </aside>
+
+  <main class="main" data-od-id="main">
+    <div class="main-head" data-od-id="main-head">
+      <h2 id="mainTitle">对话 · 流式输出</h2>
+      <div class="model-sel">
+        <label for="modelSelect" class="label" style="margin:0;white-space:nowrap">模型</label>
+        <select class="select" id="modelSelect" aria-label="选择模型">
+          <option>gpt-4o</option><option>claude-3.5-sonnet</option><option>gemini-1.5-pro</option><option>custom-compatible</option>
+        </select>
+        <span class="chip accent">Streaming · 开</span>
+        <span class="chip">上下文 12k</span>
+      </div>
+    </div>
+    <div class="content" id="contentScroll">
+      <section class="view active" id="view-chat" data-od-id="view-chat" aria-label="对话视图">
+        <div class="chat-stream" id="chatStream">
+          <div class="bubble ai"><div class="meta">AI · gpt-4o · 09:41</div>你好，有什么可以帮助？试试输入“帮我设计一个 App”，我会以流式返回。支持 Markdown、代码高亮与中断重试。</div>
+          <div class="bubble user"><div class="meta">你 · 09:42</div>帮我设计一个 Flutter 全平台 AI 客户端，要支持可配置 Endpoint。</div>
+          <div class="bubble ai" id="aiAnswer">
+            <div class="meta">AI · gpt-4o · 正在输入…</div>
+            好的，我建议用 <b>Provider Adapter</b> 抽象：UI 只调 <span class="inline-code">provider.chat()</span>，底层分别对接 OpenAI / Compatible / 自建网关。
+            <div class="codeblock"><div class="code-head"><span>ai_provider.dart</span><span style="margin-left:auto">Dart</span><button class="btn-ghost" style="padding:4px 8px;font-size:11px" onclick="showToast('已复制')">复制</button></div><div class="code">abstract class AIProvider {
+  Future&lt;ChatResponse&gt; chat({required List&lt;ChatMessage&gt; messages, required String model});
+  Future&lt;ImageResponse&gt; generateImage({required String prompt, required String model});
+  Future&lt;VideoTask&gt; generateVideo({required String prompt, required String model});
+}</div></div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+              <span class="chip">已用 412 tokens</span><span class="chip accent">流式完成 100%</span>
+            </div>
+          </div>
+          <div class="bubble ai" id="streamingBubble" style="display:none" aria-live="polite"><div class="meta">AI · 正在生成…</div><span id="streamText"></span><span style="display:inline-block;width:8px;height:14px;background:var(--accent);margin-left:4px;vertical-align:middle;animation:blink 1s step-end infinite" aria-hidden="true"></span></div>
+          <div class="empty" id="emptyChat" style="display:none" data-od-id="empty-chat">
+            <div style="width:42px;height:42px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);display:grid;place-items:center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.7" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3>还没有消息</h3>
+            <p>从下方输入框开始，或试试示例提示词。会话会自动保存在本地 Drift。</p>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px">
+              <button class="btn-ghost" onclick="fillPrompt('帮我写一个 Dio 拦截器')">Dio 拦截器</button>
+              <button class="btn-ghost" onclick="fillPrompt('生成一张赛博城市')">生成图片</button>
+              <button class="btn-ghost" onclick="fillPrompt('生成 10s 跑车视频')">生成视频</button>
+            </div>
+          </div>
+          <div class="empty" id="errorChat" style="display:none;border-color:oklch(62% 0.19 26 / 0.28);background:oklch(62% 0.19 26 / 0.08)" role="alert">
+            <div style="font:700 12px var(--font-mono);color:var(--danger)">请求失败</div>
+            <p>Endpoint 超时或鉴权失败，请检查 Base URL 与 API Key 后重试。</p>
+            <button class="btn-ghost" onclick="retryLast()">重试</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-image" data-od-id="view-image" aria-label="画图视图">
+        <div style="max-width:860px;margin:0 auto;width:100%;display:grid;gap:16px">
+          <div class="card" style="padding:14px;display:grid;gap:12px">
+            <label class="label" for="imgPrompt">Prompt</label>
+            <textarea id="imgPrompt" class="textarea" style="min-height:74px" placeholder="一只坐在月球上的橘猫，赛博朋克光影，超精细…">一只坐在月球上的橘猫，霓虹城市背景，电影感光影</textarea>
+            <div class="row2">
+              <div><label class="label" for="imgModel">模型</label><select id="imgModel" class="select" style="width:100%"><option>SDXL 1.0</option><option>DALL·E 3</option><option>Flux Schnell</option></select></div>
+              <div><label class="label" for="imgSize">尺寸</label><select id="imgSize" class="select" style="width:100%"><option>1024 × 1024</option><option>1152 × 896</option><option>896 × 1152</option></select></div>
+            </div>
+            <div class="row2">
+              <div><label class="label">数量</label><select class="select" style="width:100%"><option>4 张</option><option>1 张</option><option>2 张</option></select></div>
+              <div><label class="label">参考图</label><div style="display:flex;gap:8px"><button class="btn-ghost" style="flex:1" onclick="showToast('已选择参考图')">＋ 上传</button><button class="btn-ghost" style="flex:1" onclick="showToast('已粘贴')">粘贴</button></div></div>
+            </div>
+            <button class="btn-primary" id="genImageBtn" data-od-id="btn-generate-image">◉ 生成图片</button>
+            <div style="font:500 11px var(--font-mono);color:var(--muted)">支持 Text→Image / Image+Text→Image，失败可重试，成功可保存/分享/再次编辑。</div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap"><div style="font:700 13px var(--font-body)">生成结果 · 4</div><span class="chip">1024²</span><span class="chip accent" id="imgCountChip">2 完成 · 1 进行中 · 1 失败</span><span style="margin-left:auto;font:500 11px var(--font-mono);color:var(--muted)">长按可拖拽到桌面保存</span></div>
+            <div class="image-grid" id="imageGrid" data-od-id="image-grid">
+              <div class="card-img" data-od-id="image-card-1">
+                <div class="ph" aria-label="AI 生成图 1">
+                  <svg width="100%" height="100%" viewBox="0 0 600 600" role="img" aria-label="生成图 1"><rect width="600" height="600" fill="oklch(22% 0.02 250)"/><circle cx="220" cy="190" r="92" fill="oklch(28% 0.02 250)"/><ellipse cx="320" cy="420" rx="150" ry="86" fill="oklch(62% 0.17 152 / 0.22)"/><text x="50%" y="54%" text-anchor="middle" fill="oklch(96% 0.005 240 / 0.9)" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">SEED 01 · SDXL · 2.4s</text></svg>
+                </div>
+                <span style="position:absolute;top:8px;left:8px" class="chip accent">NEW</span><span style="position:absolute;bottom:8px;right:8px" class="chip">SDXL · 2.4s</span>
+              </div>
+              <div class="card-img" data-od-id="image-card-2">
+                <div class="ph" aria-label="AI 生成图 2">
+                  <svg width="100%" height="100%" viewBox="0 0 600 600" role="img" aria-label="生成图 2"><rect width="600" height="600" fill="oklch(20% 0.018 250)"/><rect x="120" y="140" width="360" height="260" rx="18" fill="oklch(1 0 0 / 0.06)" stroke="oklch(1 0 0 / 0.08)"/><text x="50%" y="50%" text-anchor="middle" fill="oklch(96% 0.005 240 / 0.85)" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">SEED 02 · 已保存 · cached</text></svg>
+                </div>
+                <span style="position:absolute;bottom:8px;left:8px" class="chip">已保存</span>
+              </div>
+              <div class="card-img" id="imgLoading" data-od-id="image-card-loading">
+                <div style="width:100%;height:100%;display:grid;place-items:center;gap:10px;padding:16px">
+                  <div style="width:36px;height:36px;border:3px solid oklch(1 0 0 / 0.15);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite" aria-hidden="true"></div>
+                  <div style="font:600 12px var(--font-mono);color:var(--muted)">生成中… 67%</div>
+                  <div class="progress" style="width:60%"><span style="width:67%"></span></div>
+                  <div style="font:500 11px var(--font-mono);color:var(--muted)">task_img_4f · 轮询中</div>
+                </div>
+              </div>
+              <div class="card-img" id="imgError" style="display:grid;place-items:center;background:oklch(62% 0.19 26 / 0.08);border-color:oklch(62% 0.19 26 / 0.25)" data-od-id="image-card-error">
+                <div style="text-align:center;padding:16px;display:grid;gap:6px;place-items:center">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v6M12 16h.01"/></svg>
+                  <div style="font:700 12px var(--font-mono);color:var(--danger)">生成失败</div>
+                  <div style="font:500 12px var(--font-body);color:var(--muted)">Endpoint 超时，请检查 Base URL</div>
+                  <button class="btn-ghost" style="margin-top:6px" onclick="retryImage()" data-od-id="btn-retry-image">重试</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="empty" id="emptyImage" style="display:none" data-od-id="empty-image">
+            <h3>还没有生成</h3>
+            <p>在上方输入提示词并选择模型，生成的图片会在此以 4 宫格展示。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-video" data-od-id="view-video" aria-label="视频视图">
+        <div style="max-width:860px;margin:0 auto;width:100%;display:grid;gap:16px">
+          <div class="card" style="padding:14px;display:grid;gap:12px">
+            <label class="label" for="videoPrompt">Prompt</label>
+            <textarea id="videoPrompt" class="textarea" style="min-height:74px" placeholder="一辆跑车在未来城市高速行驶，霓虹雨夜…">一辆跑车在未来城市高速行驶，霓虹雨夜，电影运镜</textarea>
+            <div class="row2">
+              <div><label class="label" for="videoModel">模型</label><select id="videoModel" class="select" style="width:100%"><option>Sora</option><option>Runway Gen-3</option><option>Luma Dream</option></select></div>
+              <div><label class="label" for="videoDur">时长</label><select id="videoDur" class="select" style="width:100%"><option>10s</option><option>5s</option><option>15s</option></select></div>
+            </div>
+            <button class="btn-primary" id="genVideoBtn" data-od-id="btn-generate-video">▶ 生成视频</button>
+            <div style="font:500 11px var(--font-mono);color:var(--muted)">视频为异步任务：POST 创建 task_id → 轮询 3s → 完成后返回 video_url。</div>
+          </div>
+          <div class="card" style="overflow:hidden">
+            <div style="padding:12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-wrap:wrap"><div style="font:700 13px var(--font-body)">任务 · #v_9f32</div><span class="chip accent" id="videoStatus">Generating… 67%</span><span style="margin-left:auto;font:500 11px var(--font-mono);color:var(--muted)">轮询间隔 3s · WebSocket 可选</span></div>
+            <div style="padding:14px;display:grid;gap:12px">
+              <div class="video-box" id="videoBox" data-od-id="video-box">
+                <div id="videoGenerating" style="text-align:center;display:grid;gap:8px;place-items:center">
+                  <div style="width:48px;height:48px;border:3px solid oklch(1 0 0 / 0.14);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite" aria-hidden="true"></div>
+                  <div style="font:700 13px var(--font-body)">Generating… 67%</div>
+                  <div class="progress" style="width:220px"><span id="videoProg" style="width:67%"></span></div>
+                  <div style="font:500 11px var(--font-mono);color:var(--muted)">task_id: v_9f32 · 已轮询 4 次 · polling</div>
+                </div>
+                <div id="videoDone" style="display:none;width:100%;height:100%;position:relative">
+                  <svg width="100%" height="100%" viewBox="0 0 960 540" role="img" aria-label="视频完成预览"><rect width="960" height="540" fill="oklch(18% 0.02 250)"/><rect x="120" y="110" width="720" height="320" rx="16" fill="oklch(1 0 0 / 0.06)" stroke="oklch(1 0 0 / 0.08)"/><text x="50%" y="50%" text-anchor="middle" fill="oklch(96% 0.005 240 / 0.9)" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">VIDEO READY · 10s · 1080p</text><text x="50%" y="56%" text-anchor="middle" fill="oklch(70% 0.012 240)" font-family="Inter, sans-serif" font-size="12">Sora · 点击播放 · video_url 就绪</text></svg>
+                  <button class="play" aria-label="播放视频" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6l10 6-10 6z"/></svg>
+                  </button>
+                </div>
+                <div id="videoError" style="display:none;text-align:center;display:none;gap:8px;place-items:center;padding:16px">
+                  <div style="font:700 12px var(--font-mono);color:var(--danger)">任务失败</div>
+                  <div style="font-size:13px;color:var(--muted)">Provider 返回 429，稍后重试</div>
+                  <button class="btn-ghost" onclick="retryVideo()">重试</button>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap" id="videoActions">
+                <button class="btn-ghost" data-od-id="btn-save-video">↓ 保存</button><button class="btn-ghost">↗ 分享</button><button class="btn-ghost">⋯ 更多</button>
+                <span style="margin-left:auto;font:500 11px var(--font-mono);color:var(--muted)">完成后可一键保存到相册 / 文件 · video_player</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-settings" data-od-id="view-settings" aria-label="设置视图">
+        <div style="max-width:860px;margin:0 auto;width:100%;display:grid;gap:14px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0;font:700 15px var(--font-body);letter-spacing:-0.02em">AI Providers</h3><span class="chip">本地安全存储 · flutter_secure_storage</span><button class="btn-primary" style="margin-left:auto;width:auto;padding:9px 14px" id="addProviderBtn" data-od-id="btn-add-provider">＋ 添加 Provider</button></div>
+          <div class="provider-card" data-od-id="provider-card-openai">
+            <div class="provider-head"><span class="status-dot" aria-hidden="true"></span><div style="font:700 13px var(--font-body)">OpenAI</div><span style="font:500 11px var(--font-mono);color:var(--muted)">https://api.openai.com/v1</span><span class="chip accent" style="margin-left:auto">已连接 · 42ms</span></div>
+            <div style="padding:12px;display:grid;gap:10px">
+              <div class="row2"><div><label class="label" for="chatModel1">Chat Model</label><select id="chatModel1" class="select" style="width:100%"><option>gpt-4o</option><option>gpt-4o-mini</option></select></div><div><label class="label" for="imgModel1">Image Model</label><select id="imgModel1" class="select" style="width:100%"><option>dall-e-3</option><option>gpt-image-1</option></select></div></div>
+              <div class="row2"><div><label class="label">Video Model</label><select class="select" style="width:100%"><option>sora</option><option>— 未配置</option></select></div><div><label class="label" for="apiKey1">API Key</label><input id="apiKey1" class="input" value="••••••••••••••••••••••••" type="password" autocomplete="off"></div></div>
+              <div style="display:flex;gap:8px"><button class="btn-ghost" style="flex:1" onclick="testConn(this)" data-od-id="btn-test-conn-1">Test Connection</button><button class="btn-ghost" style="flex:1">查看用量</button></div>
+            </div>
+          </div>
+          <div class="provider-card" data-od-id="provider-card-compatible">
+            <div class="provider-head"><span class="status-dot" style="background:var(--warn);box-shadow:0 0 0 6px oklch(78% 0.14 72 / 0.15)" aria-hidden="true"></span><div style="font:700 13px var(--font-body)">OpenAI Compatible · 自建网关</div><span style="font:500 11px var(--font-mono);color:var(--muted)">https://ai.company.local/v1</span><span class="chip" id="compatChip">未测试</span></div>
+            <div style="padding:12px;display:grid;gap:10px">
+              <div><label class="label" for="baseUrl">API Base URL</label><input id="baseUrl" class="input" value="https://ai.company.local/v1" inputmode="url" autocomplete="url"></div>
+              <div class="row2"><div><label class="label" for="chatEp">Chat Endpoint</label><input id="chatEp" class="input" value="/chat/completions"></div><div><label class="label" for="imgEp">Image Endpoint</label><input id="imgEp" class="input" value="/images/generations"></div></div>
+              <div class="row2"><div><label class="label" for="vidEp">Video Endpoint</label><input id="vidEp" class="input" value="/video/generations"></div><div><label class="label" for="apiKey2">API Key</label><input id="apiKey2" class="input" value="" placeholder="sk-…" type="password" autocomplete="off"></div></div>
+              <button class="btn-primary" onclick="testConn(this)" data-od-id="btn-test-conn-2">Test Connection</button>
+            </div>
+          </div>
+          <div class="provider-card" style="border-style:dashed;background:transparent" data-od-id="provider-card-add">
+            <div style="padding:14px;display:flex;align-items:center;gap:12px;color:var(--muted);flex-wrap:wrap">
+              <div style="width:34px;height:34px;border-radius:10px;border:1px dashed var(--border);display:grid;place-items:center;flex:0 0 auto">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </div>
+              <div><div style="font:600 13px var(--font-body);color:var(--fg)">添加 ComfyUI / Replicate / 本地 LAN API</div><div style="font:500 12px var(--font-mono)">支持自定义 Chat / Image / Video Endpoint 与模型列表</div></div>
+              <button class="btn-ghost" style="margin-left:auto" onclick="showToast('已打开新建 Provider')">新建</button>
+            </div>
+          </div>
+          <div class="card" style="padding:13px;display:grid;gap:8px">
+            <div style="font:600 11px var(--font-mono);letter-spacing:0.07em;text-transform:uppercase;color:var(--muted)">本地数据</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip">Drift / SQLite · 会话与任务</span><span class="chip">cached_network_image</span><span class="chip">video_player</span></div>
+            <div style="font:500 12px var(--font-mono);color:var(--muted);line-height:1.6">所有历史、图片与视频任务均本地持久化，Endpoint 仅在请求时使用。Provider 抽象：<span class="inline-code">AIProvider</span> · chat / generateImage / generateVideo / getVideoTask</div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="composer" id="composer" data-od-id="composer">
+      <div class="composer-row">
+        <button class="icon-btn" aria-label="上传附件" title="附件">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M21 8l-5-5H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M16 3v5h5"/></svg>
+        </button>
+        <textarea class="textarea" id="chatInput" placeholder="输入消息…  支持 Markdown、代码块、图片粘贴 · Enter 发送 · Shift+Enter 换行"></textarea>
+        <button class="send" id="sendBtn" aria-label="发送" data-od-id="btn-send">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9z"/></svg>
+        </button>
+      </div>
+      <div class="helper">
+        <span>Enter 发送 · Shift+Enter 换行 · / 唤起指令</span>
+        <span style="margin-left:auto;display:flex;gap:6px"><span class="chip">Dio</span><span class="chip">Riverpod</span><span class="chip">go_router</span></span>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right" data-od-id="right-panel" aria-label="参数面板">
+    <div class="right-head"><h3 id="rightTitle" style="margin:0;font:700 13px var(--font-body);letter-spacing:-0.01em">参数</h3><button class="icon-btn" style="width:30px;height:30px" onclick="toggleRight()" aria-label="收起参数面板">—</button></div>
+    <div id="right-chat" style="padding:12px;display:grid;gap:12px">
+      <div><label class="label" for="sysPrompt">系统提示词</label><textarea id="sysPrompt" class="textarea" style="min-height:70px">你是 Universal AI Client 的助手，精通 Flutter 与 Provider 抽象。</textarea></div>
+      <div class="row2"><div><label class="label" for="temp">温度</label><input id="temp" type="range" min="0" max="100" value="70" style="width:100%"><div style="font:500 11px var(--font-mono);color:var(--muted)">0.7 · 平衡</div></div><div><label class="label" for="topp">Top-P</label><input id="topp" type="range" min="0" max="100" value="90" style="width:100%"><div style="font:500 11px var(--font-mono);color:var(--muted)">0.9</div></div></div>
+      <div><span class="label">工具</span><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip accent">Streaming</span><span class="chip">函数调用</span><span class="chip">联网</span></div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:11px"><div style="font:600 11px var(--font-mono);color:var(--muted)">Provider 路由</div><div style="font:500 12px var(--font-mono);margin-top:6px;line-height:1.7">chat → <b>OpenAI Compatible</b><br>image → SDXL<br>video → Sora<br><span style="color:var(--muted)">UI 仅调用 provider.*</span></div></div>
+      <div class="card" style="padding:11px;display:flex;align-items:center;gap:10px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent-soft);border:1px solid oklch(62% 0.17 152 / 0.2);display:grid;place-items:center;color:var(--accent)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3l7 4v8l-7 4-7-4V7z"/><path d="M12 11v10"/><path d="M12 11L5 7"/><path d="M12 11l7-4"/></svg>
+      </div><div><div style="font:600 12px var(--font-body)">架构总览</div><div style="font:500 11px var(--font-mono);color:var(--muted)">Flutter UI → Gateway → Provider Adapter</div></div></div>
+    </div>
+    <div id="right-image" style="display:none;padding:12px;gap:12px">
+      <div><label class="label" for="negPrompt">负面提示词</label><input id="negPrompt" class="input" placeholder="模糊、低质量、畸形…"></div>
+      <div><span class="label">风格预设</span><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip accent">电影感</span><span class="chip">赛博</span><span class="chip">水彩</span><span class="chip">极简</span></div></div>
+      <div style="background:oklch(11.5% 0.01 244);border:1px solid var(--border);border-radius:11px;padding:11px;font:500 11px var(--font-mono);color:var(--muted);line-height:1.6">可拖入参考图实现 Image+Text→Image，支持局部重绘 / 扩图 / 放大。</div>
+    </div>
+    <div id="right-video" style="display:none;padding:12px;gap:12px">
+      <div><label class="label" for="camMove">运镜</label><select id="camMove" class="select" style="width:100%"><option>推轨</option><option>环绕</option><option>固定</option></select></div>
+      <div><span class="label">任务状态</span><div style="font:500 12px var(--font-mono);line-height:1.8;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px">task_id: v_9f32<br>status: processing<br>progress: <span id="rightProg">67%</span><br>poll: 3s / 次</div></div>
+      <button class="btn-ghost" style="width:100%" onclick="showToast('已打开 API 日志')">查看 API 日志</button>
+    </div>
+    <div id="right-settings" style="display:none;padding:12px;gap:12px">
+      <div style="font:500 12px var(--font-mono);color:var(--muted);line-height:1.7">Endpoint 可配置到“模型”级别，支持多 Provider 并存，UI 层无感知切换。首版聚焦 Chat / Image / Video / Settings 四页。</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:11px;font:500 11px var(--font-mono);line-height:1.6">抽象：<b>AIProvider</b><br>chat / generateImage / generateVideo / getVideoTask<br><span style="color:var(--muted)">Dio + flutter_secure_storage</span></div>
+    </div>
+  </aside>
+</div>
+</div>
+
+<div style="max-width:1440px;margin:10px auto 0;padding:0 14px 18px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:var(--muted);font:500 11px var(--font-mono)" data-od-id="footer-links">
+  <span>其他载体文件：</span>
+  <a class="chip" href="desktop.html">desktop.html · 桌面母版</a>
+  <a class="chip" href="app.html">app.html · 响应式</a>
+  <a class="chip" href="tablet.html">tablet.html · 平板</a>
+  <a class="chip" href="android.html">android.html · Android</a>
+  <span style="margin-left:auto">© Universal AI Client · 同一套 Provider 抽象，任意 Endpoint</span>
+</div>
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-bg" id="drawerBg"></div>
+  <div class="drawer-panel" role="dialog" aria-modal="true" aria-label="会话抽屉">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo">AI</div><div style="font:700 13px var(--font-body)">AI Client</div>
+      <button class="icon-btn" style="margin-left:auto" id="closeDrawerBtn" aria-label="关闭">✕</button>
+    </div>
+    <button class="btn-primary" style="margin-top:14px" onclick="showToast('已创建新会话')">＋ 新对话</button>
+    <div style="margin-top:12px;display:grid;gap:8px">
+      <button class="conv active"><span class="conv-title">Flutter 架构讨论</span><span class="conv-meta"><span>2 分钟前</span><span class="pill">GPT-4o</span></span></button>
+      <button class="conv"><span class="conv-title">API 设计 · Provider 抽象</span><span class="conv-meta"><span>1 小时前</span><span class="pill">Claude</span></span></button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" aria-hidden="true">
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-label="参数">
+    <div style="display:flex;align-items:center;gap:8px"><div style="font:700 13px var(--font-body)">参数</div><span class="chip accent">Streaming 开</span><button class="icon-btn" style="margin-left:auto;width:30px;height:30px" id="closeSheetBtn" aria-label="关闭">✕</button></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+      <div><div style="font:600 11px var(--font-mono);color:var(--muted)">温度 0.7</div><input type="range" style="width:100%" value="70"></div>
+      <div><label class="label" style="margin-bottom:4px">模型</label><select class="select" style="width:100%"><option>gpt-4o</option><option>claude-3.5</option></select></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const tabs=document.querySelectorAll('.tab');
+const views={chat:document.getElementById('view-chat'),image:document.getElementById('view-image'),video:document.getElementById('view-video'),settings:document.getElementById('view-settings')};
+const rightPanels={chat:document.getElementById('right-chat'),image:document.getElementById('right-image'),video:document.getElementById('right-video'),settings:document.getElementById('right-settings')};
+const composer=document.getElementById('composer');
+const mainTitle=document.getElementById('mainTitle');
+const rightTitle=document.getElementById('rightTitle');
+const titles={chat:'对话 · 流式输出',image:'画图 · Text / Image → Image',video:'视频 · 异步任务轮询',settings:'设置 · Provider 与 Endpoint'};
+let activeTab='chat';
+function switchTab(name){
+  activeTab=name;
+  tabs.forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  Object.entries(views).forEach(([k,el])=>el.classList.toggle('active',k===name));
+  Object.entries(rightPanels).forEach(([k,el])=>{el.style.display=k===name?'grid':'none'});
+  if(composer) composer.style.display=name==='chat'?'grid':'none';
+  if(mainTitle) mainTitle.textContent=titles[name];
+  if(rightTitle) rightTitle.textContent=name==='chat'?'参数':name==='image'?'生成参数':name==='video'?'任务':'说明';
+  try{localStorage.setItem('ud_tab',name);}catch(e){}
+  document.getElementById('contentScroll').scrollTop=0;
+}
+tabs.forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
+try{const s=localStorage.getItem('ud_tab'); if(s&&views[s]) switchTab(s);}catch(e){}
+
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t=setTimeout(()=>el.classList.remove('show'),1800);
+}
+window.showToast=showToast;
+
+function fillPrompt(t){
+  const el=document.getElementById('chatInput');
+  el.value=t; el.focus();
+  showToast('已填入示例');
+}
+window.fillPrompt=fillPrompt;
+
+const deviceBtns=document.querySelectorAll('.device-btn');
+const shell=document.getElementById('previewShell');
+deviceBtns.forEach(b=>b.addEventListener('click',()=>{
+  deviceBtns.forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  shell.className='preview-shell mode-'+b.dataset.mode;
+  if(b.dataset.mode==='responsive') shell.className='preview-shell';
+  showToast('预览：'+b.textContent.trim());
+}));
+
+const stateBtns=document.querySelectorAll('.state-btn');
+const emptyChat=document.getElementById('emptyChat');
+const errorChat=document.getElementById('errorChat');
+const aiAnswer=document.getElementById('aiAnswer');
+const emptyImage=document.getElementById('emptyImage');
+const imageGrid=document.getElementById('imageGrid');
+const imgLoading=document.getElementById('imgLoading');
+const imgError=document.getElementById('imgError');
+const videoGenerating=document.getElementById('videoGenerating');
+const videoDone=document.getElementById('videoDone');
+const videoError=document.getElementById('videoError');
+const videoStatus=document.getElementById('videoStatus');
+
+function applyState(s){
+  stateBtns.forEach(b=>b.classList.toggle('active',b.dataset.state===s));
+  const isChat=activeTab==='chat', isImg=activeTab==='image', isVid=activeTab==='video';
+  if(isChat){
+    if(s==='empty'){ emptyChat.style.display='grid'; errorChat.style.display='none'; aiAnswer.style.display='none'; document.getElementById('streamingBubble').style.display='none'; }
+    else if(s==='error'){ emptyChat.style.display='none'; errorChat.style.display='grid'; aiAnswer.style.display='none'; }
+    else if(s==='loading'){ emptyChat.style.display='none'; errorChat.style.display='none'; aiAnswer.style.display='none'; document.getElementById('streamingBubble').style.display='block'; triggerStream(); }
+    else { emptyChat.style.display='none'; errorChat.style.display='none'; aiAnswer.style.display='block'; document.getElementById('streamingBubble').style.display='none'; }
+  }
+  if(isImg){
+    if(s==='empty'){ imageGrid.style.display='none'; emptyImage.style.display='grid'; imgLoading.style.display='none'; if(imgError) imgError.style.display='none'; }
+    else if(s==='loading'){ imageGrid.style.display='grid'; emptyImage.style.display='none'; if(imgLoading) imgLoading.style.display='grid'; if(imgError) imgError.style.display='none'; }
+    else if(s==='error'){ imageGrid.style.display='grid'; emptyImage.style.display='none'; if(imgLoading) imgLoading.style.display='none'; if(imgError) imgError.style.display='grid'; }
+    else { imageGrid.style.display='grid'; emptyImage.style.display='none'; if(imgLoading) imgLoading.style.display='none'; if(imgError) imgError.style.display='none'; const g=document.getElementById('imgLoading'); if(g) g.style.display='none'; }
+  }
+  if(isVid){
+    if(s==='loading'){ videoGenerating.style.display='grid'; videoDone.style.display='none'; videoError.style.display='none'; videoStatus.textContent='Generating… 67%'; videoStatus.className='chip accent'; startVideoPoll(); }
+    else if(s==='error'){ videoGenerating.style.display='none'; videoDone.style.display='none'; videoError.style.display='grid'; videoStatus.textContent='失败 · 429'; videoStatus.className='chip warn'; }
+    else if(s==='done'){ videoGenerating.style.display='none'; videoDone.style.display='block'; videoError.style.display='none'; videoStatus.textContent='已完成 · 10s'; }
+    else { videoGenerating.style.display='grid'; videoDone.style.display='none'; videoError.style.display='none'; videoStatus.textContent='排队中…'; }
+  }
+  if(!isChat && !isImg && !isVid) showToast('状态：'+s+' · 当前为设置页，仅预览 Provider 连接态');
+}
+stateBtns.forEach(b=>b.addEventListener('click',()=>applyState(b.dataset.state)));
+
+document.getElementById('newChatBtn').addEventListener('click',()=>{
+  switchTab('chat');
+  applyState('empty');
+  showToast('已创建新会话 · 本地 Drift 已持久化');
+});
+document.getElementById('manageProviderBtn').addEventListener('click',()=>switchTab('settings'));
+document.getElementById('openDrawerBtn').addEventListener('click',openDrawer);
+document.getElementById('closeDrawerBtn').addEventListener('click',closeDrawer);
+document.getElementById('drawerBg').addEventListener('click',closeDrawer);
+document.getElementById('closeSheetBtn').addEventListener('click',()=>document.getElementById('sheet').classList.remove('open'));
+function openDrawer(){ document.getElementById('drawer').classList.add('open'); document.getElementById('drawer').setAttribute('aria-hidden','false'); }
+function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer').setAttribute('aria-hidden','true'); }
+
+const chatInput=document.getElementById('chatInput');
+const sendBtn=document.getElementById('sendBtn');
+const streamBubble=document.getElementById('streamingBubble');
+const streamText=document.getElementById('streamText');
+let lastUserText='';
+function triggerStream(){
+  streamText.textContent='';
+  const full='已收到：'+(lastUserText||'示例消息')+'。按 Provider 抽象，我会通过 provider.chat() 路由到 '+document.getElementById('modelSelect').value+'，并以流式增量返回，支持中断与重试。';
+  let i=0; clearInterval(triggerStream._t);
+  triggerStream._t=setInterval(()=>{ streamText.textContent=full.slice(0,i++); if(i>full.length){ clearInterval(triggerStream._t); setTimeout(()=>{ streamBubble.style.display='none'; const ai=document.createElement('div'); ai.className='bubble ai'; ai.innerHTML='<div class="meta">AI · '+document.getElementById('modelSelect').value+'</div>'+full; document.getElementById('chatStream').appendChild(ai); showToast('流式完成'); },380);} },16);
+}
+function send(){
+  const v=chatInput.value.trim(); if(!v) return;
+  lastUserText=v;
+  const user=document.createElement('div'); user.className='bubble user';
+  const esc=v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  user.innerHTML='<div class="meta">你 · 刚刚</div>'+esc;
+  document.getElementById('chatStream').appendChild(user);
+  chatInput.value='';
+  emptyChat.style.display='none'; errorChat.style.display='none'; aiAnswer.style.display='none';
+  streamBubble.style.display='block';
+  triggerStream();
+}
+function retryLast(){ if(lastUserText) send(); else showToast('无可重试的消息'); }
+window.retryLast=retryLast;
+sendBtn.addEventListener('click',send);
+chatInput.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault(); send();}});
+document.querySelectorAll('.conv').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.conv').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');
+  if(c.dataset.conv==='2') showToast('已切换会话 · 上下文已加载');
+}));
+
+document.getElementById('genImageBtn').addEventListener('click',()=>{
+  switchTab('image');
+  imageGrid.style.display='grid'; emptyImage.style.display='none';
+  const g=document.getElementById('imgLoading');
+  if(g){
+    g.style.display='grid';
+    g.innerHTML='<div style="width:100%;height:100%;display:grid;place-items:center;gap:10px;padding:16px"><div style="width:36px;height:36px;border:3px solid oklch(1 0 0 / 0.15);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite" aria-hidden="true"></div><div style="font:600 12px var(--font-mono);color:var(--muted)">生成中… 67%</div><div class="progress" style="width:60%"><span style="width:67%"></span></div></div>';
+  }
+  if(imgError) imgError.style.display='none';
+  showToast('已提交生成任务 · 4 张');
+  setTimeout(()=>{
+    if(g){
+      g.innerHTML='<div class="ph" style="position:relative"><svg width="100%" height="100%" viewBox="0 0 600 600" role="img" aria-label="新生成图"><rect width="600" height="600" fill="oklch(22% 0.02 250)"/><circle cx="300" cy="300" r="110" fill="oklch(62% 0.17 152 / 0.18)"/><text x="50%" y="50%" text-anchor="middle" fill="oklch(96% 0.005 240)" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">NEW · 已完成 · 1.8s</text></svg><span style="position:absolute;bottom:8px;right:8px" class="chip accent">NEW · 已完成</span></div>';
+      g.style.display='grid';
+    }
+    showToast('生成完成 · 已保存到本地');
+  },1500);
+});
+function retryImage(){ document.getElementById('genImageBtn').click(); }
+window.retryImage=retryImage;
+
+let prog=67; let videoTimer=null;
+function startVideoPoll(){
+  const progEl=document.getElementById('videoProg'); const status=document.getElementById('videoStatus'); const rightProg=document.getElementById('rightProg');
+  if(videoTimer) clearInterval(videoTimer);
+  prog=67;
+  if(document.getElementById('videoGenerating')) document.getElementById('videoGenerating').style.display='grid';
+  if(document.getElementById('videoDone')) document.getElementById('videoDone').style.display='none';
+  if(document.getElementById('videoError')) document.getElementById('videoError').style.display='none';
+  if(status){ status.textContent='Generating… 67%'; status.className='chip accent'; }
+  videoTimer=setInterval(()=>{
+    prog=Math.min(100, prog+Math.floor(Math.random()*8)+3);
+    if(progEl) progEl.style.width=prog+'%';
+    if(rightProg) rightProg.textContent=prog+'%';
+    if(status) status.textContent='Generating… '+prog+'%';
+    if(prog>=100){
+      clearInterval(videoTimer);
+      if(status){ status.textContent='已完成 · 10s'; status.className='chip accent'; }
+      if(document.getElementById('videoGenerating')) document.getElementById('videoGenerating').style.display='none';
+      if(document.getElementById('videoDone')) document.getElementById('videoDone').style.display='block';
+      showToast('视频已完成 · video_url 就绪');
+    }
+  },900);
+}
+window.retryVideo=function(){ startVideoPoll(); showToast('重试中…'); };
+document.getElementById('genVideoBtn').addEventListener('click', startVideoPoll);
+
+function testConn(btn){
+  const orig=btn.textContent; btn.textContent='测试中…'; btn.disabled=true;
+  setTimeout(()=>{
+    btn.textContent='✓ 连接成功 · 42ms';
+    const chip=document.getElementById('compatChip');
+    if(chip){ chip.textContent='已连接 · 38ms'; chip.className='chip accent'; }
+    showToast('连接成功');
+    setTimeout(()=>{ btn.textContent=orig; btn.disabled=false; },1600);
+  },850);
+}
+window.testConn=testConn;
+document.getElementById('addProviderBtn').addEventListener('click',()=>showToast('已打开添加 Provider 表单 · 支持自定义 Endpoint'));
+function toggleRight(){
+  const r=document.querySelector('.right');
+  if(!r) return;
+  const hidden=r.style.display==='none';
+  r.style.display=hidden?'flex':'none';
+  showToast(hidden?'已展开参数':'已收起参数');
+}
+window.toggleRight=toggleRight;
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); showToast('⌘K · 快速切换模型 / Provider'); }
+});
+</script>
+</body>
+</html>

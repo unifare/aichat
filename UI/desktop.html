@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Universal AI Client — 桌面端</title>
+<style>
+:root{
+  --bg: oklch(14.2% 0.012 244);
+  --surface: oklch(18.8% 0.014 244);
+  --surface2: oklch(22.5% 0.016 244);
+  --surface3: oklch(26% 0.015 244);
+  --border: oklch(26% 0.015 264);
+  --border2: oklch(1 0 0 / 0.08);
+  --fg: oklch(97% 0.004 240);
+  --muted: oklch(66% 0.013 240);
+  --muted2: oklch(55% 0.012 240);
+  --accent: oklch(62% 0.17 152);
+  --accent-2: oklch(68% 0.14 152);
+  --warn: oklch(78% 0.14 72);
+  --danger: oklch(62% 0.19 26);
+  --font-body: 'Inter', system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:var(--font-body)}
+button,input,select,textarea{font:inherit}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:oklch(1 0 0 / 0.12);border-radius:999px}
+.app{display:grid;grid-template-columns:280px 1fr 340px;grid-template-rows:44px 1fr;height:100vh;overflow:hidden}
+.topbar{grid-column:1 / -1;display:flex;align-items:center;gap:12px;padding:0 14px;background:oklch(16% 0.01 244);border-bottom:1px solid var(--border);-webkit-app-region:drag}
+.dots{display:flex;gap:6px}.dot{width:11px;height:11px;border-radius:50%}
+.nav-tabs{display:flex;gap:6px;margin-left:12px}
+.tab{padding:7px 12px;border-radius:999px;border:1px solid transparent;color:var(--muted);font:600 13px var(--font-body);cursor:pointer;background:transparent}
+.tab.active{background:var(--fg);color:oklch(14% 0.01 244);border-color:var(--fg)}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.chip{font:600 11px var(--font-mono);letter-spacing:0.04em;padding:7px 10px;border-radius:999px;border:1px solid var(--border);background:oklch(1 0 0 / 0.04);color:var(--muted)}
+.chip.accent{border-color:oklch(62% 0.17 152 / 0.4);color:var(--accent);background:oklch(62% 0.17 152 / 0.12)}
+.icon-btn{width:32px;height:32px;display:grid;place-items:center;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.brand{padding:16px 14px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:oklch(14% 0.01 244);font:700 13px var(--font-mono)}
+.btn-primary{width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:oklch(14% 0.01 244);font:600 13px var(--font-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-ghost{padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:oklch(1 0 0 / 0.03);color:var(--muted);font:500 12px var(--font-body);cursor:pointer}
+.section-label{font:600 11px var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--muted2);padding:14px 14px 8px}
+.conv{padding:10px 12px;margin:0 8px;border-radius:10px;cursor:pointer;border:1px solid transparent;display:grid;gap:4px}
+.conv.active{background:var(--surface2);border-color:var(--border)}
+.conv:hover{background:var(--surface2)}
+.conv-title{font:600 13px var(--font-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-meta{font:11px var(--font-mono);color:var(--muted);display:flex;gap:8px}
+.pill{font:600 10px var(--font-mono);letter-spacing:0.04em;padding:3px 6px;border-radius:999px;background:oklch(1 0 0 / 0.06);border:1px solid var(--border);color:var(--muted)}
+.main{background:oklch(15.5% 0.012 244);display:flex;flex-direction:column;overflow:hidden;position:relative}
+.main-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:oklch(16% 0.01 244 / 0.6);backdrop-filter:blur(8px)}
+.main-head h2{margin:0;font-size:15px;letter-spacing:-0.02em}
+.model-sel{display:flex;align-items:center;gap:8px;margin-left:auto}
+.select{padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg);font:500 13px var(--font-body)}
+.content{flex:1;overflow:auto;padding:18px}
+.right{border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:auto}
+.right-head{padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.right-head h3{margin:0;font-size:13px;letter-spacing:-0.01em}
+.view{display:none}.view.active{display:flex;flex-direction:column;flex:1;min-height:0}
+.chat-stream{display:grid;gap:14px;max-width:760px;margin:0 auto;width:100%}
+.bubble{max-width:78%;padding:12px 14px;border-radius:14px;line-height:1.6;font-size:14px;border:1px solid var(--border)}
+.bubble.ai{background:var(--surface2);border-color:var(--border)}
+.bubble.user{background:var(--accent);color:oklch(14% 0.01 244);border-color:var(--accent);margin-left:auto}
+.bubble .meta{font:11px var(--font-mono);color:var(--muted);margin-bottom:6px}
+.codeblock{margin-top:8px;background:oklch(12% 0.01 244);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.code-head{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);font:600 11px var(--font-mono);color:var(--muted)}
+.code{padding:10px;font:12px var(--font-mono);line-height:1.6;white-space:pre;overflow:auto;color:oklch(88% 0.01 240)}
+.composer{padding:12px;border-top:1px solid var(--border);background:var(--surface);display:grid;gap:8px}
+.composer-row{display:flex;gap:8px;align-items:flex-end}
+.textarea{flex:1;min-height:44px;max-height:120px;padding:11px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--fg);resize:none;outline:none}
+.send{width:42px;height:42px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:oklch(14% 0.01 244);display:grid;place-items:center;cursor:pointer}
+.image-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:1100px){.image-grid{grid-template-columns:1fr}}
+.card-img{aspect-ratio:1;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);position:relative;display:grid;place-items:center}
+.card-img img{width:100%;height:100%;object-fit:cover}
+.progress{height:6px;background:oklch(1 0 0 / 0.08);border-radius:999px;overflow:hidden}
+.progress>span{display:block;height:100%;background:var(--accent)}
+.provider-card{margin:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);overflow:hidden}
+.provider-head{padding:12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 6px oklch(62% 0.17 152 / 0.15)}
+.input{width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:oklch(12% 0.01 244);color:var(--fg);font:13px var(--font-mono)}
+.label{font:600 11px var(--font-mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.video-box{aspect-ratio:16/9;border-radius:14px;border:1px solid var(--border);background:var(--surface2);display:grid;place-items:center;position:relative;overflow:hidden}
+.play{width:54px;height:54px;border-radius:50%;background:var(--fg);color:oklch(14% 0.01 244);display:grid;place-items:center}
+.empty{border:1px dashed var(--border);border-radius:14px;padding:22px;text-align:center;color:var(--muted);background:oklch(1 0 0 / 0.02)}
+.toast{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:var(--fg);color:oklch(14% 0.01 244);padding:10px 14px;border-radius:999px;font:600 12px var(--font-body);display:none}
+</style>
+</head>
+<body>
+<div class="app" data-od-id="desktop-shell">
+  <div class="topbar">
+    <div class="dots"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span></div>
+    <div style="font:700 13px var(--font-mono);letter-spacing:-0.02em">Universal AI Client</div>
+    <div class="nav-tabs" data-od-id="top-tabs">
+      <button class="tab active" data-tab="chat">对话</button>
+      <button class="tab" data-tab="image">画图</button>
+      <button class="tab" data-tab="video">视频</button>
+      <button class="tab" data-tab="settings">设置</button>
+    </div>
+    <div class="top-actions">
+      <span class="chip accent" id="providerChip">● OpenAI Compatible · 已连接</span>
+      <span class="chip" style="font-family:var(--font-mono)">v0.1 · Drift + Riverpod</span>
+      <button class="icon-btn" title="快捷键">⌘K</button>
+    </div>
+  </div>
+
+  <aside class="sidebar" data-od-id="sidebar">
+    <div class="brand">
+      <div class="logo">AI</div>
+      <div>
+        <div style="font:700 13px var(--font-body)">AI Client</div>
+        <div style="font:11px var(--font-mono);color:var(--muted)">全平台 · Provider 抽象</div>
+      </div>
+      <span style="margin-left:auto;font:600 10px var(--font-mono);color:var(--accent);border:1px solid oklch(62% 0.17 152 / 0.3);padding:4px 6px;border-radius:999px;background:oklch(62% 0.17 152 / 0.12)">全平台</span>
+    </div>
+    <div style="padding:12px">
+      <button class="btn-primary" id="newChatBtn">＋ 新对话</button>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn-ghost" style="flex:1">模板</button>
+        <button class="btn-ghost" style="flex:1">导入</button>
+      </div>
+    </div>
+    <div class="section-label">今天</div>
+    <div class="conv active" data-conv="1"><div class="conv-title">Flutter 全平台架构讨论</div><div class="conv-meta"><span>2 分钟前</span><span class="pill">GPT-4o</span></div></div>
+    <div class="conv" data-conv="2"><div class="conv-title">API 设计 · Provider 抽象</div><div class="conv-meta"><span>1 小时前</span><span class="pill">Claude 3.5</span></div></div>
+    <div class="conv" data-conv="3"><div class="conv-title">画图提示词优化</div><div class="conv-meta"><span>昨天</span><span class="pill">SDXL</span></div></div>
+    <div class="section-label">历史会话 · 本地 Drift</div>
+    <div style="padding:0 8px;display:grid;gap:6px">
+      <div class="conv" style="opacity:.9"><div class="conv-title">视频生成 · 未来城市跑车</div><div class="conv-meta"><span>3 天前</span><span class="pill">Sora</span></div></div>
+      <div class="conv" style="opacity:.8"><div class="conv-title">空状态引导会话</div><div class="conv-meta"><span>—</span><span class="pill">未开始</span></div></div>
+    </div>
+    <div style="margin-top:auto;padding:12px;border-top:1px solid var(--border);display:grid;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="status-dot"></div>
+        <div style="font:600 12px var(--font-body)">已连接 3 个 Provider</div>
+        <span style="margin-left:auto;font:11px var(--font-mono);color:var(--muted)">延迟 86ms</span>
+      </div>
+      <div class="progress"><span style="width:86%"></span></div>
+      <button class="btn-ghost" onclick="switchTab('settings')">管理 Provider →</button>
+    </div>
+  </aside>
+
+  <main class="main" data-od-id="main">
+    <div class="main-head">
+      <h2 id="mainTitle">对话 · 流式输出</h2>
+      <div class="model-sel">
+        <select class="select" id="modelSelect"><option>gpt-4o</option><option>claude-3.5-sonnet</option><option>gemini-1.5-pro</option><option>custom-compatible</option></select>
+        <span class="chip">Streaming · 开</span>
+        <span class="chip">上下文 12k</span>
+      </div>
+    </div>
+    <div class="content">
+      <!-- CHAT -->
+      <div class="view active" id="view-chat" data-od-id="view-chat">
+        <div class="chat-stream" id="chatStream">
+          <div class="bubble ai"><div class="meta">AI · gpt-4o · 09:41</div>你好，有什么可以帮助？试试输入“帮我设计一个 App”，我会以流式返回。</div>
+          <div class="bubble user"><div class="meta" style="color:oklch(14% 0.01 244 / 0.7)">你 · 09:42</div>帮我设计一个 Flutter 全平台 AI 客户端，要支持可配置 Endpoint。</div>
+          <div class="bubble ai">
+            <div class="meta">AI · gpt-4o · 正在输入…</div>
+            好的，我建议用 <b>Provider Adapter</b> 抽象：UI 只调 <span style="font-family:var(--font-mono);background:oklch(1 0 0 / 0.06);padding:2px 6px;border-radius:6px;border:1px solid var(--border)">provider.chat()</span>，底层分别对接 OpenAI / Compatible / 自建网关。
+            <div class="codeblock"><div class="code-head"><span>ai_provider.dart</span><span style="margin-left:auto">Dart</span></div><div class="code">abstract class AIProvider {
+  Future&lt;ChatResponse&gt; chat({required List&lt;ChatMessage&gt; messages, required String model});
+  Future&lt;ImageResponse&gt; generateImage({required String prompt, required String model});
+  Future&lt;VideoTask&gt; generateVideo({required String prompt, required String model});
+}</div></div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+              <span class="chip">已用 412 tokens</span><span class="chip accent">流式完成 100%</span>
+            </div>
+          </div>
+          <div class="bubble ai" id="streamingBubble" style="display:none"><div class="meta">AI · 正在生成…</div><span id="streamText"></span><span style="display:inline-block;width:8px;height:14px;background:var(--accent);margin-left:4px;vertical-align:middle;animation:blink 1s step-end infinite"></span></div>
+          <div class="empty" id="emptyChat" style="display:none">
+            <div style="font:600 13px var(--font-body);color:var(--fg)">还没有消息</div>
+            <div style="font:13px var(--font-body);margin-top:6px">从下方输入框开始，或试试示例提示词</div>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+              <button class="btn-ghost" onclick="fillPrompt('帮我写一个 Dio 拦截器')">Dio 拦截器</button>
+              <button class="btn-ghost" onclick="fillPrompt('生成一张赛博城市')">生成图片</button>
+              <button class="btn-ghost" onclick="fillPrompt('生成 10s 跑车视频')">生成视频</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- IMAGE -->
+      <div class="view" id="view-image" data-od-id="view-image">
+        <div style="max-width:860px;margin:0 auto;width:100%;display:grid;gap:16px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;display:grid;gap:12px">
+            <label class="label">Prompt</label>
+            <textarea id="imgPrompt" class="textarea" style="min-height:72px" placeholder="一只坐在月球上的橘猫，赛博朋克光影，超精细…">一只坐在月球上的橘猫，霓虹城市背景，电影感光影</textarea>
+            <div class="row2">
+              <div><label class="label">模型</label><select class="select" style="width:100%"><option>SDXL 1.0</option><option>DALL·E 3</option><option>Flux Schnell</option></select></div>
+              <div><label class="label">尺寸</label><select class="select" style="width:100%"><option>1024 × 1024</option><option>1152 × 896</option><option>896 × 1152</option></select></div>
+            </div>
+            <div class="row2">
+              <div><label class="label">数量</label><select class="select" style="width:100%"><option>4 张</option><option>1 张</option><option>2 张</option></select></div>
+              <div><label class="label">参考图</label><div style="display:flex;gap:8px"><button class="btn-ghost" style="flex:1">＋ 上传</button><button class="btn-ghost" style="flex:1">粘贴</button></div></div>
+            </div>
+            <button class="btn-primary" id="genImageBtn">◉ 生成图片</button>
+            <div style="font:11px var(--font-mono);color:var(--muted)">支持 Text→Image / Image+Text→Image，失败可重试，成功可保存/分享/再次编辑。</div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="font:600 13px var(--font-body)">生成结果 · 4</div><span class="chip">1024²</span><span style="margin-left:auto;font:11px var(--font-mono);color:var(--muted)">长按可拖拽到桌面保存</span></div>
+            <div class="image-grid" id="imageGrid">
+              <div class="card-img"><div style="width:100%;height:100%;display:grid;place-items:center;background:radial-gradient(400px 220px at 30% 15%, oklch(62% 0.17 152 / 0.14), transparent 60%), linear-gradient(180deg, oklch(22% 0.02 250), oklch(18% 0.014 244))"><svg width="100%" height="100%" viewBox="0 0 600 600" role="img" aria-label="AI 生成图 1"><rect width="600" height="600" fill="oklch(22% 0.02 250)"/><circle cx="220" cy="190" r="92" fill="oklch(28% 0.02 250)"/><ellipse cx="320" cy="420" rx="150" ry="86" fill="oklch(62% 0.17 152 / 0.22)"/><text x="50%" y="54%" text-anchor="middle" fill="oklch(96% 0.005 240 / 0.9)" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">SEED 01 · SDXL · 2.4s</text></svg></div><span style="position:absolute;top:8px;left:8px" class="chip accent">NEW</span><span style="position:absolute;bottom:8px;right:8px" class="chip">SDXL · 2.4s</span></div>
+              <div class="card-img"><div style="width:100%;height:100%;display:grid;place-items:center;background:oklch(18% 0.014 244)"><svg width="100%" height="100%" viewBox="0 0 600 600" role="img" aria-label="AI 生成图 2"><rect width="600" height="600" fill="oklch(20% 0.018 250)"/><rect x="120" y="140" width="360" height="260" rx="18" fill="oklch(1 0 0 / 0.06)" stroke="oklch(1 0 0 / 0.08)"/><text x="50%" y="50%" text-anchor="middle" fill="oklch(96% 0.005 240 / 0.85)" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">SEED 02 · 已保存 · cached</text></svg></div><span style="position:absolute;bottom:8px;left:8px" class="chip">已保存</span></div>
+              <div class="card-img" id="imgLoading"><div style="width:100%;height:100%;display:grid;place-items:center;gap:10px"><div style="width:36px;height:36px;border:3px solid oklch(1 0 0 / 0.15);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite"></div><div style="font:600 12px var(--font-mono);color:var(--muted)">生成中… 67%</div><div class="progress" style="width:60%"><span style="width:67%"></span></div></div></div>
+              <div class="card-img" style="display:grid;place-items:center;background:oklch(62% 0.19 26 / 0.08);border-color:oklch(62% 0.19 26 / 0.25)"><div style="text-align:center;padding:16px"><div style="font:700 12px var(--font-mono);color:var(--danger)">生成失败</div><div style="font:12px var(--font-body);color:var(--muted);margin-top:6px">Endpoint 超时，请检查 Base URL</div><button class="btn-ghost" style="margin-top:10px" onclick="retryImage()">重试</button></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- VIDEO -->
+      <div class="view" id="view-video" data-od-id="view-video">
+        <div style="max-width:860px;margin:0 auto;width:100%;display:grid;gap:16px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;display:grid;gap:12px">
+            <label class="label">Prompt</label>
+            <textarea id="videoPrompt" class="textarea" style="min-height:72px" placeholder="一辆跑车在未来城市高速行驶，霓虹雨夜…">一辆跑车在未来城市高速行驶，霓虹雨夜，电影运镜</textarea>
+            <div class="row2">
+              <div><label class="label">模型</label><select class="select" style="width:100%"><option>Sora</option><option>Runway Gen-3</option><option>Luma Dream</option></select></div>
+              <div><label class="label">时长</label><select class="select" style="width:100%"><option>10s</option><option>5s</option><option>15s</option></select></div>
+            </div>
+            <button class="btn-primary" id="genVideoBtn">▶ 生成视频</button>
+            <div style="font:11px var(--font-mono);color:var(--muted)">视频为异步任务：POST 创建 task_id → 轮询 3s → 完成后返回 video_url。</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+            <div style="padding:12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)"><div style="font:600 13px var(--font-body)">任务 · #v_9f32</div><span class="chip accent" id="videoStatus">Generating… 67%</span><span style="margin-left:auto;font:11px var(--font-mono);color:var(--muted)">轮询间隔 3s · WebSocket 可选</span></div>
+            <div style="padding:14px;display:grid;gap:12px">
+              <div class="video-box" id="videoBox">
+                <div id="videoGenerating" style="text-align:center">
+                  <div style="width:48px;height:48px;border:3px solid oklch(1 0 0 / 0.14);border-top-color:var(--accent);border-radius:50%;margin:0 auto;animation:spin 1s linear infinite"></div>
+                  <div style="font:600 13px var(--font-body);margin-top:10px">Generating… 67%</div>
+                  <div class="progress" style="width:220px;margin:10px auto 0"><span id="videoProg" style="width:67%"></span></div>
+                  <div style="font:11px var(--font-mono);color:var(--muted);margin-top:6px">task_id: v_9f32 · 已轮询 4 次</div>
+                </div>
+                <div id="videoDone" style="display:none;width:100%;height:100%;position:relative">
+                  <svg width="100%" height="100%" viewBox="0 0 960 540" role="img" aria-label="视频完成预览"><rect width="960" height="540" fill="oklch(18% 0.02 250)"/><rect x="120" y="110" width="720" height="320" rx="16" fill="oklch(1 0 0 / 0.06)" stroke="oklch(1 0 0 / 0.08)"/><text x="50%" y="50%" text-anchor="middle" fill="oklch(96% 0.005 240 / 0.9)" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">VIDEO READY · 10s · 1080p</text><text x="50%" y="56%" text-anchor="middle" fill="oklch(70% 0.012 240)" font-family="Inter, sans-serif" font-size="12">Sora · 点击播放 · video_url 就绪</text></svg>
+                  <button class="play" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)">▶</button>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap" id="videoActions">
+                <button class="btn-ghost">↓ 保存</button><button class="btn-ghost">↗ 分享</button><button class="btn-ghost">⋯ 更多</button>
+                <span style="margin-left:auto;font:11px var(--font-mono);color:var(--muted)">完成后可一键保存到相册 / 文件</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- SETTINGS -->
+      <div class="view" id="view-settings" data-od-id="view-settings">
+        <div style="max-width:860px;margin:0 auto;width:100%;display:grid;gap:14px">
+          <div style="display:flex;align-items:center;gap:10px"><h3 style="margin:0">AI Providers</h3><span class="chip">本地安全存储 · flutter_secure_storage</span><button class="btn-primary" style="margin-left:auto;width:auto;padding:9px 14px" id="addProviderBtn">＋ 添加 Provider</button></div>
+          <div class="provider-card">
+            <div class="provider-head"><div class="status-dot"></div><div style="font:700 13px var(--font-body)">OpenAI</div><span style="font:11px var(--font-mono);color:var(--muted)">https://api.openai.com/v1</span><span class="chip accent" style="margin-left:auto">已连接 · 42ms</span></div>
+            <div style="padding:12px;display:grid;gap:10px">
+              <div class="row2"><div><label class="label">Chat Model</label><select class="select" style="width:100%"><option>gpt-4o</option><option>gpt-4o-mini</option></select></div><div><label class="label">Image Model</label><select class="select" style="width:100%"><option>dall-e-3</option><option>gpt-image-1</option></select></div></div>
+              <div class="row2"><div><label class="label">Video Model</label><select class="select" style="width:100%"><option>sora</option><option>— 未配置</option></select></div><div><label class="label">API Key</label><input class="input" value="••••••••••••••••••••••••" type="password"></div></div>
+              <div style="display:flex;gap:8px"><button class="btn-ghost" style="flex:1" onclick="testConn(this)">Test Connection</button><button class="btn-ghost" style="flex:1">查看用量</button></div>
+            </div>
+          </div>
+          <div class="provider-card">
+            <div class="provider-head"><div class="status-dot" style="background:var(--warn);box-shadow:0 0 0 6px oklch(78% 0.14 72 / 0.15)"></div><div style="font:700 13px var(--font-body)">OpenAI Compatible · 自建网关</div><span style="font:11px var(--font-mono);color:var(--muted)">https://ai.company.local/v1</span><span class="chip">未测试</span></div>
+            <div style="padding:12px;display:grid;gap:10px">
+              <div><label class="label">API Base URL</label><input class="input" value="https://ai.company.local/v1"></div>
+              <div class="row2"><div><label class="label">Chat Endpoint</label><input class="input" value="/chat/completions"></div><div><label class="label">Image Endpoint</label><input class="input" value="/images/generations"></div></div>
+              <div class="row2"><div><label class="label">Video Endpoint</label><input class="input" value="/video/generations"></div><div><label class="label">API Key</label><input class="input" value="" placeholder="sk-…"></div></div>
+              <button class="btn-primary" onclick="testConn(this)">Test Connection</button>
+            </div>
+          </div>
+          <div class="provider-card" style="border-style:dashed;background:transparent">
+            <div style="padding:14px;display:flex;align-items:center;gap:12px;color:var(--muted)">
+              <div style="width:32px;height:32px;border-radius:8px;border:1px dashed var(--border);display:grid;place-items:center">＋</div>
+              <div><div style="font:600 13px var(--font-body);color:var(--fg)">添加 ComfyUI / Replicate / 本地 LAN API</div><div style="font:12px var(--font-mono)">支持自定义 Chat / Image / Video Endpoint 与模型列表</div></div>
+              <button class="btn-ghost" style="margin-left:auto">新建</button>
+            </div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;display:grid;gap:8px">
+            <div style="font:600 12px var(--font-mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">本地数据</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip">Drift / SQLite · 会话与任务</span><span class="chip">cached_network_image</span><span class="chip">video_player</span></div>
+            <div style="font:12px var(--font-mono);color:var(--muted)">所有历史、图片与视频任务均本地持久化，Endpoint 仅在请求时使用。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="composer" id="composer">
+      <div class="composer-row">
+        <button class="icon-btn" title="附件">📎</button>
+        <textarea class="textarea" id="chatInput" placeholder="输入消息…  支持 Markdown、代码块、图片粘贴"></textarea>
+        <button class="send" id="sendBtn" title="发送">➤</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font:11px var(--font-mono);color:var(--muted)">Enter 发送 · Shift+Enter 换行 · / 唤起指令</span>
+        <span style="margin-left:auto;display:flex;gap:6px"><span class="chip">Dio</span><span class="chip">Riverpod</span></span>
+      </div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </main>
+
+  <aside class="right" data-od-id="right-panel">
+    <div class="right-head"><h3 id="rightTitle">参数</h3><button class="icon-btn" style="width:28px;height:28px" onclick="toggleRight()">—</button></div>
+    <div id="right-chat" style="padding:12px;display:grid;gap:12px">
+      <div><label class="label">系统提示词</label><textarea class="textarea" style="min-height:64px">你是 Universal AI Client 的助手，精通 Flutter 与 Provider 抽象。</textarea></div>
+      <div class="row2"><div><label class="label">温度</label><input type="range" min="0" max="100" value="70" style="width:100%"><div style="font:11px var(--font-mono);color:var(--muted)">0.7 · 平衡</div></div><div><label class="label">Top-P</label><input type="range" min="0" max="100" value="90" style="width:100%"><div style="font:11px var(--font-mono);color:var(--muted)">0.9</div></div></div>
+      <div><label class="label">工具</label><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip accent">Streaming</span><span class="chip">函数调用</span><span class="chip">联网</span></div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px"><div style="font:600 11px var(--font-mono);color:var(--muted)">Provider 路由</div><div style="font:12px var(--font-mono);margin-top:6px;line-height:1.6">chat → <b>OpenAI Compatible</b><br>image → SDXL<br>video → Sora</div></div>
+    </div>
+    <div id="right-image" style="display:none;padding:12px;display:none;gap:12px">
+      <div><label class="label">负面提示词</label><input class="input" placeholder="模糊、低质量、畸形…"></div>
+      <div><label class="label">风格预设</label><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip accent">电影感</span><span class="chip">赛博</span><span class="chip">水彩</span><span class="chip">极简</span></div></div>
+      <div style="background:oklch(12% 0.01 244);border:1px solid var(--border);border-radius:10px;padding:10px;font:11px var(--font-mono);color:var(--muted)">提示：可拖入参考图实现 Image+Text→Image。</div>
+    </div>
+    <div id="right-video" style="display:none;padding:12px;display:none;gap:12px">
+      <div><label class="label">运镜</label><select class="select" style="width:100%"><option>推轨</option><option>环绕</option><option>固定</option></select></div>
+      <div><label class="label">任务状态</label><div style="font:12px var(--font-mono);line-height:1.7">task_id: v_9f32<br>status: processing<br>progress: 67%<br>poll: 3s / 次</div></div>
+      <button class="btn-ghost" style="width:100%">查看 API 日志</button>
+    </div>
+    <div id="right-settings" style="display:none;padding:12px;display:none;gap:12px">
+      <div style="font:12px var(--font-mono);color:var(--muted);line-height:1.6">Endpoint 可配置到“模型”级别，支持多 Provider 并存，UI 层无感知切换。</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;font:11px var(--font-mono)">抽象：<b>AIProvider</b><br>chat / generateImage / generateVideo / getVideoTask</div>
+    </div>
+  </aside>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}@keyframes blink{50%{opacity:0}}</style>
+<script>
+const tabs=document.querySelectorAll('.tab');
+const views={chat:document.getElementById('view-chat'),image:document.getElementById('view-image'),video:document.getElementById('view-video'),settings:document.getElementById('view-settings')};
+const rightPanels={chat:document.getElementById('right-chat'),image:document.getElementById('right-image'),video:document.getElementById('right-video'),settings:document.getElementById('right-settings')};
+const composer=document.getElementById('composer');
+const mainTitle=document.getElementById('mainTitle');
+const rightTitle=document.getElementById('rightTitle');
+const titles={chat:'对话 · 流式输出',image:'画图 · Text / Image → Image',video:'视频 · 异步任务轮询',settings:'设置 · Provider 与 Endpoint'};
+function switchTab(name){
+  tabs.forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  Object.entries(views).forEach(([k,el])=>el.classList.toggle('active',k===name));
+  Object.entries(rightPanels).forEach(([k,el])=>{el.style.display=k===name?'grid':'none'});
+  composer.style.display=name==='chat'?'grid':'none';
+  mainTitle.textContent=titles[name];
+  rightTitle.textContent=name==='chat'?'参数':name==='image'?'生成参数':name==='video'?'任务': '说明';
+  localStorage.setItem('ud_desktop_tab',name);
+}
+tabs.forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
+const saved=localStorage.getItem('ud_desktop_tab'); if(saved&&views[saved]) switchTab(saved);
+function fillPrompt(t){document.getElementById('chatInput').value=t; document.getElementById('chatInput').focus();}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',1800);}
+document.getElementById('newChatBtn').addEventListener('click',()=>{
+  document.getElementById('emptyChat').style.display='block';
+  document.getElementById('chatStream').querySelectorAll('.bubble').forEach((b,i)=>{if(i>0) b.style.display='none'});
+  toast('已创建新会话 · 本地 Drift 已持久化');
+});
+const chatInput=document.getElementById('chatInput');
+const sendBtn=document.getElementById('sendBtn');
+const streamBubble=document.getElementById('streamingBubble');
+const streamText=document.getElementById('streamText');
+function send(){
+  const v=chatInput.value.trim(); if(!v) return;
+  const user=document.createElement('div'); user.className='bubble user'; user.innerHTML=`<div class="meta" style="color:oklch(14% 0.01 244 / 0.7)">你 · 刚刚</div>${v.replace(/</g,'&lt;')}`;
+  document.getElementById('chatStream').appendChild(user);
+  chatInput.value='';
+  streamBubble.style.display='block';
+  streamText.textContent='';
+  const full='已收到：'+v+'。按 Provider 抽象，我会通过 provider.chat() 路由到当前选中的模型（'+document.getElementById('modelSelect').value+'），并以流式增量返回，支持中断与重试。';
+  let i=0; const timer=setInterval(()=>{streamText.textContent=full.slice(0,i++); if(i>full.length){clearInterval(timer); setTimeout(()=>{streamBubble.style.display='none'; const ai=document.createElement('div'); ai.className='bubble ai'; ai.innerHTML=`<div class="meta">AI · ${document.getElementById('modelSelect').value}</div>${full}`; document.getElementById('chatStream').appendChild(ai);},400);} },18);
+}
+sendBtn.addEventListener('click',send);
+chatInput.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault(); send();}});
+document.getElementById('genImageBtn').addEventListener('click',()=>{
+  const g=document.getElementById('imgLoading'); g.innerHTML='<div style="width:100%;height:100%;display:grid;place-items:center;gap:10px"><div style="width:36px;height:36px;border:3px solid oklch(1 0 0 / 0.15);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite"></div><div style="font:600 12px var(--font-mono);color:var(--muted)">生成中… 67%</div><div class="progress" style="width:60%"><span style="width:67%"></span></div></div>';
+  toast('已提交生成任务 · 4 张');
+  setTimeout(()=>{g.innerHTML='<div style="width:100%;height:100%;display:grid;place-items:center;background:radial-gradient(400px 220px at 30% 15%, oklch(62% 0.17 152 / 0.14), transparent 60%), linear-gradient(180deg, oklch(22% 0.02 250), oklch(18% 0.014 244))"><svg width="100%" height="100%" viewBox="0 0 600 600" role="img" aria-label="新生成图"><rect width="600" height="600" fill="oklch(22% 0.02 250)"/><circle cx="300" cy="300" r="110" fill="oklch(62% 0.17 152 / 0.18)"/><text x="50%" y="50%" text-anchor="middle" fill="oklch(96% 0.005 240)" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">NEW · 已完成 · 1.8s</text></svg><span style="position:absolute;bottom:8px;right:8px" class="chip accent">NEW · 已完成</span></div>'; toast('生成完成 · 已保存到本地');},1600);
+});
+function retryImage(){ toast('重试中…'); document.getElementById('genImageBtn').click(); }
+let prog=67; let videoTimer=null;
+function startVideoPoll(){
+  const progEl=document.getElementById('videoProg'); const status=document.getElementById('videoStatus');
+  if(videoTimer) clearInterval(videoTimer);
+  prog=67;
+  document.getElementById('videoGenerating').style.display='block';
+  document.getElementById('videoDone').style.display='none';
+  videoTimer=setInterval(()=>{ prog=Math.min(100, prog+Math.floor(Math.random()*8)+3); progEl.style.width=prog+'%'; status.textContent='Generating… '+prog+'%'; if(prog>=100){clearInterval(videoTimer); status.textContent='已完成 · 10s'; status.className='chip accent'; document.getElementById('videoGenerating').style.display='none'; document.getElementById('videoDone').style.display='block'; toast('视频已完成 · video_url 就绪');}},900);
+}
+document.getElementById('genVideoBtn').addEventListener('click', startVideoPoll);
+startVideoPoll();
+function testConn(btn){ const orig=btn.textContent; btn.textContent='测试中…'; btn.disabled=true; setTimeout(()=>{btn.textContent='✓ 连接成功 · 42ms'; btn.style.color='var(--accent)'; setTimeout(()=>{btn.textContent=orig; btn.style.color=''; btn.disabled=false;},1600); toast('连接成功');},900);}
+document.getElementById('addProviderBtn').addEventListener('click',()=>toast('已打开添加 Provider 表单'));
+function toggleRight(){ const r=document.querySelector('.right'); r.style.display=r.style.display==='none'?'flex':'none'; }
+document.querySelectorAll('.conv').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.conv').forEach(x=>x.classList.remove('active')); c.classList.add('active'); if(c.dataset.conv==='2') toast('已切换会话 · 上下文已加载');}));
+</script>
+</body>
+</html>

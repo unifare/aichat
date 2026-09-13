@@ -1,0 +1,31 @@
+name: aichat
+description: "Universal AI Client — Flutter 全平台 Chat / Image / Video，Provider 抽象 + 可配置 Endpoint。"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.2
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.6.1
+  go_router: ^15.1.2
+  dio: ^5.8.0
+  shared_preferences: ^2.5.3
+  flutter_secure_storage: ^9.2.4
+  flutter_markdown: ^0.7.7
+  cached_network_image: ^3.4.1
+  video_player: ^2.10.0
+  uuid: ^4.5.1
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
