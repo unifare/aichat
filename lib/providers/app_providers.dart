@@ -123,12 +123,32 @@ class ConversationsNotifier extends StateNotifier<List<Conversation>> {
     updateLastAssistant(convId, content);
   }
 
+  void setProvider(String convId, String providerId, String model){
+    state = [
+      for(final c in state)
+        if(c.id==convId) c.copyWith(providerId: providerId, model: model, updatedAt: DateTime.now())
+        else c
+    ];
+    _save();
+  }
+
   String _titleFrom(String s){
     final t=s.trim().replaceAll('\n',' ');
     if(t.length>20) return '${t.substring(0,20)}…';
     return t.isEmpty? '新对话': t;
   }
 }
+
+final aiProviderForProvider = Provider.family<AIProvider, String?>((ref, providerId){
+  final configs = ref.watch(providerConfigsProvider);
+  if(configs.isEmpty) return UnconfiguredProvider('未配置任何 Provider，请到 设置 → 添加 Provider');
+  ProviderConfig? cfg;
+  if(providerId!=null) cfg = configs.where((c)=>c.id==providerId).firstOrNull;
+  cfg ??= configs.first;
+  if(cfg.baseUrl.trim().isEmpty) return UnconfiguredProvider('Provider "${cfg.name}" 未填写 Base URL');
+  if(cfg.apiKey.trim().isEmpty) return UnconfiguredProvider('Provider "${cfg.name}" 未填写 API Key');
+  try{ return CompatibleProvider(cfg); }catch(e){ return UnconfiguredProvider('Provider 配置错误：$e'); }
+});
 
 final currentConversationProvider = Provider<Conversation?>((ref){
   final list = ref.watch(conversationsProvider);

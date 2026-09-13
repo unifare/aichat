@@ -17,13 +17,21 @@ class RightPanel extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFF2E3B52)))),
-          child: Row(children:[ Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize:13)), const Spacer(), const Icon(Icons.remove, size:16, color: Color(0xFF94A3B8))]),
+          child: Row(children:[ Icon(_titleIcon(currentIndex), size:16, color: const Color(0xFF94A3B8)), const SizedBox(width:8), Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize:13)), const Spacer(), const Icon(Icons.remove, size:16, color: Color(0xFF94A3B8))]),
         ),
         Expanded(child: SingleChildScrollView(padding: const EdgeInsets.all(12), child: _body(ref))),
       ]),
     );
   }
 
+  IconData _titleIcon(int i){
+    switch(i){
+      case 0: return Icons.tune;
+      case 1: return Icons.image_outlined;
+      case 2: return Icons.videocam_outlined;
+      default: return Icons.info_outline;
+    }
+  }
   Widget _body(WidgetRef ref){
     final configs = ref.watch(providerConfigsProvider);
     final activeId = ref.watch(activeProviderIdProvider);

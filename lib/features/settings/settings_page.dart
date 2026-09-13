@@ -239,7 +239,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('正在测试连接…')));
     final ok = await CompatibleProvider(c).testConnection();
     if(!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok? '✓ 连接成功': '✗ 连接失败：请检查 Base URL / Endpoint / API Key / 网络'), backgroundColor: ok? AppColors.accent: AppColors.danger));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok? '连接成功': '连接失败：请检查 Base URL / Endpoint / API Key / 网络'), backgroundColor: ok? AppColors.accent: AppColors.danger));
   }
 
   void _showDetails(ProviderConfig c){

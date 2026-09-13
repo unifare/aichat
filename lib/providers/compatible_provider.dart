@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../core/api/api_client.dart';
@@ -35,19 +36,27 @@ class CompatibleProvider implements AIProvider {
   @override Stream<String> chatStream({required List<ChatMessage> messages, required String model}) async* {
     final dio = client.dio;
     try{
-      final resp = await dio.post(
+      final resp = await dio.post<ResponseBody>(
         config.chatEndpoint,
         data: {'model': model, 'messages': messages.map((m)=>{'role':m.role.name,'content':m.content}).toList(), 'stream': true},
-        options: Options(responseType: ResponseType.plain),
+        options: Options(responseType: ResponseType.stream, headers: {'Accept':'text/event-stream'}),
       );
-      final data = resp.data;
-      if(data is String && data.contains('data:')){
-        String acc='';
-        bool gotContent=false;
-        for(final raw in data.split('\n')){
-          final t=raw.trim();
-          if(!t.startsWith('data:')) continue;
-          final payload=t.substring(5).trim();
+      final body = resp.data;
+      if(body==null) throw Exception('empty stream');
+      String acc='';
+      bool gotContent=false;
+      String buffer='';
+      await for(final chunk in body.stream){
+        buffer += utf8.decode(chunk, allowMalformed: true);
+        // process line by line
+        while(buffer.contains('\n')){
+          final nl = buffer.indexOf('\n');
+          String line = buffer.substring(0, nl);
+          buffer = buffer.substring(nl+1);
+          line = line.trim();
+          if(line.isEmpty) continue;
+          if(!line.startsWith('data:')) continue;
+          final payload = line.substring(5).trim();
           if(payload.isEmpty || payload=='[DONE]') continue;
           Map<String,dynamic>? obj;
           try{
@@ -58,19 +67,43 @@ class CompatibleProvider implements AIProvider {
           if(obj==null) continue;
           final content = _extractDeltaContent(obj);
           if(content==null || content.isEmpty) continue;
+          // stop check
+          final finish = _extractFinish(obj);
           acc += content;
           gotContent=true;
           yield acc;
+          if(finish) break;
         }
-        if(gotContent) return;
       }
+      // tail buffer without trailing newline
+      final tail = buffer.trim();
+      if(tail.startsWith('data:')){
+        final payload = tail.substring(5).trim();
+        if(payload.isNotEmpty && payload!='[DONE]'){
+          try{
+            final v=jsonDecode(payload);
+            Map<String,dynamic>? obj;
+            if(v is Map<String,dynamic>) obj=v;
+            else if(v is Map) obj=Map<String,dynamic>.from(v);
+            if(obj!=null){
+              final c=_extractDeltaContent(obj);
+              if(c!=null && c.isNotEmpty){ acc+=c; gotContent=true; yield acc; }
+            }
+          }catch(_){}
+        }
+      }
+      if(gotContent) return;
     }catch(_){
-      // fallback to non-stream
+      // fall through to non-stream
     }
+    // fallback: non-streaming request with incremental yield for typewriter feel
     final res = await chat(messages: messages, model: model);
-    for(int i=0;i<res.content.length;i++){
-      await Future.delayed(const Duration(milliseconds: 12));
-      yield res.content.substring(0,i+1);
+    // yield progressively so UI still animates even on non-stream endpoints
+    String cur='';
+    for(final ch in res.content.split('')){
+      cur+=ch;
+      yield cur;
+      await Future.delayed(const Duration(milliseconds: 10));
     }
   }
 
@@ -85,6 +118,8 @@ class CompatibleProvider implements AIProvider {
           if(cc is String) return cc;
           final tc = delta['text'];
           if(tc is String) return tc;
+          final rc = delta['reasoning_content'];
+          if(rc is String && rc.isNotEmpty) return rc;
         }
         final text = c0['text'];
         if(text is String) return text;
@@ -99,7 +134,20 @@ class CompatibleProvider implements AIProvider {
     }
     final direct = obj['content'];
     if(direct is String) return direct;
+    final txt = obj['text'];
+    if(txt is String) return txt;
     return null;
+  }
+  bool _extractFinish(Map<String,dynamic> obj){
+    try{
+      final choices=obj['choices'];
+      if(choices is List && choices.isNotEmpty){
+        final c0=choices[0] as Map;
+        final fr=c0['finish_reason'];
+        if(fr!=null && fr.toString()!='null' && fr.toString().isNotEmpty) return true;
+      }
+    }catch(_){}
+    return false;
   }
 
   @override Future<ImageResponse> generateImage({required String prompt, required String model, String size='1024x1024'}) async {
@@ -107,7 +155,7 @@ class CompatibleProvider implements AIProvider {
     final list = data['data'] as List?;
     final urls = list?.map((e){
       if(e is Map){
-        return (e['url'] ?? e['b64_json'] ?? '').toString();
+        return (e['url'] ?? e['b64_json'] ?? e['b64Json'] ?? '').toString();
       }
       return e.toString();
     }).where((s)=>s.isNotEmpty).toList() ?? [];

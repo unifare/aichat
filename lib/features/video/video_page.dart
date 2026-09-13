@@ -112,7 +112,9 @@ class _VideoPageState extends ConsumerState<VideoPage> {
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
                 Row(children:[
-                  const Text('PROMPT', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted)),
+                  const Icon(Icons.edit_outlined, size:12, color: AppColors.muted),
+                  const SizedBox(width:4),
+                  const Text('PROMPT', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, fontWeight: FontWeight.w600, letterSpacing:0.6, color: AppColors.muted)),
                   const Spacer(),
                   if(_prompt.text.isNotEmpty) Text('${_prompt.text.length} 字', style: const TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted)),
                 ]),

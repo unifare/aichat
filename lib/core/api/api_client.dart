@@ -1,19 +1,19 @@
-
 import 'package:dio/dio.dart';
 import 'api_exception.dart';
 
 class ApiClient {
   final Dio dio;
-  ApiClient({required String baseUrl, required String apiKey, Duration timeout=const Duration(seconds: 30)}): dio=Dio(BaseOptions(
+  ApiClient({required String baseUrl, required String apiKey, Duration timeout=const Duration(seconds: 60)}): dio=Dio(BaseOptions(
     baseUrl: baseUrl,
     connectTimeout: timeout,
     receiveTimeout: timeout,
+    sendTimeout: timeout,
     headers: {
       if(apiKey.isNotEmpty) 'Authorization':'Bearer $apiKey',
       'Content-Type':'application/json',
     },
   )){
-    dio.interceptors.add(LogInterceptor(requestBody:true, responseBody:true));
+    dio.interceptors.add(LogInterceptor(requestBody:false, responseBody:false));
   }
 
   Future<Map<String,dynamic>> postJson(String path, Map<String,dynamic> data) async {

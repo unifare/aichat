@@ -99,6 +99,8 @@ class _ImagePageState extends ConsumerState<ImagePage> {
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
                 Row(children:[
+                  const Icon(Icons.edit_outlined, size:12, color: AppColors.muted),
+                  const SizedBox(width:4),
                   const Text('PROMPT', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, fontWeight: FontWeight.w600, letterSpacing:0.6, color: AppColors.muted)),
                   const Spacer(),
                   if(_prompt.text.isNotEmpty) Text('${_prompt.text.length} 字', style: const TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted)),
@@ -139,6 +141,8 @@ class _ImagePageState extends ConsumerState<ImagePage> {
             ),
             const SizedBox(height:16),
             Row(children:[
+              const Icon(Icons.photo_library_outlined, size:14, color: AppColors.muted),
+              const SizedBox(width:6),
               Text('生成结果 · ${tasks.length}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize:13)),
               const Spacer(),
               if(tasks.isNotEmpty) TextButton(onPressed: ()=> ref.read(imageTasksProvider.notifier).clear(), child: const Text('清空', style: TextStyle(fontSize:12))),
