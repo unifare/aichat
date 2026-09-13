@@ -25,12 +25,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             Row(children:[
               const Text('AI Providers', style: TextStyle(fontWeight: FontWeight.w700, fontSize:16)),
               const SizedBox(width:8),
-              Container(padding: const EdgeInsets.symmetric(horizontal:8, vertical:4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), border: Border.all(color: AppColors.border), color: const Color(0x0AFFFFFF)), child: const Text('Base URL + Endpoints 可配置 · 真实请求', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted))),
+              Container(padding: const EdgeInsets.symmetric(horizontal:8, vertical:4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), border: Border.all(color: AppColors.border), color: const Color(0x0AFFFFFF)), child: const Text('Base URL + Endpoints 可配置', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted))),
               const Spacer(),
               FilledButton.icon(onPressed: _addProvider, icon: const Icon(Icons.add, size:16), label: const Text('添加 Provider'), style: FilledButton.styleFrom(backgroundColor: AppColors.accent, foregroundColor: Color(0xFF111827), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))),
             ]),
             const SizedBox(height:8),
-            const Text('所有 Provider 配置真实持久化到本地（SharedPreferences + SecureStorage）。未配置前，所有 Chat/Image/Video 均会返回真实错误，不展示假数据。', style: TextStyle(fontSize:12, color: AppColors.muted, height:1.5)),
+            const Text('所有 Provider 配置持久化到本地（SharedPreferences + SecureStorage）。未配置前，Chat / Image / Video 将提示错误。', style: TextStyle(fontSize:12, color: AppColors.muted, height:1.5)),
             const SizedBox(height:14),
             if(configs.isEmpty)
               Container(
@@ -41,7 +41,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   const SizedBox(height:12),
                   const Text('还没有 Provider', style: TextStyle(fontWeight: FontWeight.w600, fontSize:13)),
                   const SizedBox(height:4),
-                  const Text('添加你的 OpenAI / OpenAI Compatible / 自建网关\n填写 Base URL 与 API Key 后即可真实使用', style: TextStyle(fontSize:12, color: AppColors.muted, height:1.5), textAlign: TextAlign.center),
+                  const Text('添加你的 OpenAI / OpenAI Compatible / 自建网关\n填写 Base URL 与 API Key 后即可使用', style: TextStyle(fontSize:12, color: AppColors.muted, height:1.5), textAlign: TextAlign.center),
                   const SizedBox(height:12),
                   FilledButton.icon(onPressed: _addProvider, icon: const Icon(Icons.add, size:16), label: const Text('添加第一个 Provider'), style: FilledButton.styleFrom(backgroundColor: AppColors.accent, foregroundColor: Color(0xFF111827))),
                   const SizedBox(height:12),
@@ -78,7 +78,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
                 const Text('本地数据说明', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, fontWeight: FontWeight.w600, letterSpacing:0.6, color: AppColors.muted)),
                 const SizedBox(height:8),
-                const Text('· 会话与消息：SharedPreferences 真实持久化，删除后不可恢复\n· API Key：flutter_secure_storage 加密存储，不以明文落盘\n· 图片/视频任务：当前为内存态，重启后清空（可扩展为本地 DB）', style: TextStyle(fontSize:12, color: AppColors.muted, height:1.6)),
+                const Text('· 会话与消息：SharedPreferences 持久化，删除后不可恢复\n· API Key：flutter_secure_storage 加密存储，不以明文落盘\n· 图片/视频任务：当前为内存态，重启后清空（可扩展为本地 DB）', style: TextStyle(fontSize:12, color: AppColors.muted, height:1.6)),
                 const SizedBox(height:8),
                 Wrap(spacing:6, runSpacing:6, children:[
                   _chip('SharedPreferences'),

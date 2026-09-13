@@ -77,7 +77,7 @@ class TopBar extends ConsumerWidget implements PreferredSizeWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal:8, vertical:6),
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), border: Border.all(color: const Color(0xFF2E3B52)), color: const Color(0x0AFFFFFF)),
-            child: const Text('v0.1 · 真实请求', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: Color(0xFF94A3B8))),
+            child: const Text('v0.1', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: Color(0xFF94A3B8))),
           ),
         ],
       ),

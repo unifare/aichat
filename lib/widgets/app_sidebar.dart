@@ -27,7 +27,7 @@ class AppSidebar extends ConsumerWidget {
                 Text('全平台 · Provider 抽象', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: Color(0xFF94A3B8))),
               ]),
               const Spacer(),
-              Container(padding: const EdgeInsets.symmetric(horizontal:6, vertical:4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), border: Border.all(color: Color(0xFF10B981).withValues(alpha:0.3)), color: Color(0xFF10B981).withValues(alpha:0.12)), child: const Text('真实', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:10, color: Color(0xFF10B981), fontWeight: FontWeight.w600))),
+              Container(padding: const EdgeInsets.symmetric(horizontal:6, vertical:4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), border: Border.all(color: Color(0xFF10B981).withValues(alpha:0.3)), color: Color(0xFF10B981).withValues(alpha:0.12)), child: const Text('本地', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:10, color: Color(0xFF10B981), fontWeight: FontWeight.w600))),
             ]),
           ),
           Padding(

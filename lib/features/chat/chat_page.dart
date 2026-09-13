@@ -128,7 +128,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           child: Row(children:[
             const Icon(Icons.warning_amber_rounded, size:18, color: Color(0xFFF59E0B)),
             const SizedBox(width:8),
-            const Expanded(child: Text('未配置任何 Provider，无法发起真实请求。请先去设置页添加 Base URL 与 API Key。', style: TextStyle(fontSize:12, color: Color(0xFFF59E0B)))),
+            const Expanded(child: Text('未配置任何 Provider，无法发起请求。请先去设置页添加 Base URL 与 API Key。', style: TextStyle(fontSize:12, color: Color(0xFFF59E0B)))),
             const SizedBox(width:8),
             FilledButton(onPressed: ()=> context.go('/settings'), style: FilledButton.styleFrom(backgroundColor: const Color(0xFFF59E0B), foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(horizontal:12, vertical:6), minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap), child: const Text('去设置', style: TextStyle(fontSize:12))),
           ]),
@@ -156,7 +156,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ),
             const SizedBox(width:8),
           ],
-          Container(padding: const EdgeInsets.symmetric(horizontal:8, vertical:5), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), border: Border.all(color: AppColors.border), color: const Color(0x0AFFFFFF)), child: Text(streaming? '生成中…': '真实请求', style: const TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted))),
+          Container(padding: const EdgeInsets.symmetric(horizontal:8, vertical:5), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), border: Border.all(color: AppColors.border), color: const Color(0x0AFFFFFF)), child: Text(streaming? '生成中…': '就绪', style: const TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted))),
         ]),
       ),
       Expanded(
@@ -241,7 +241,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           const SizedBox(height:14),
           const Text('还没有会话', style: TextStyle(fontWeight: FontWeight.w700, fontSize:14)),
           const SizedBox(height:6),
-          Text(hasProvider? '点击“新对话”开始，所有记录将真实保存在本地。': '请先到 设置 页添加 Provider，再创建会话。', style: const TextStyle(fontSize:13, color: AppColors.muted), textAlign: TextAlign.center),
+          Text(hasProvider? '点击“新对话”开始，所有记录将保存在本地。': '请先到 设置 页添加 Provider，再创建会话。', style: const TextStyle(fontSize:13, color: AppColors.muted), textAlign: TextAlign.center),
           const SizedBox(height:16),
           if(hasProvider)
             FilledButton.icon(onPressed: ()=> ref.read(conversationsProvider.notifier).newConversation(), icon: const Icon(Icons.add), label: const Text('新对话'), style: FilledButton.styleFrom(backgroundColor: AppColors.accent, foregroundColor: Color(0xFF111827))),
@@ -261,7 +261,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           const SizedBox(height:10),
           const Text('开始对话', style: TextStyle(fontWeight: FontWeight.w600, fontSize:13)),
           const SizedBox(height:6),
-          const Text('在下方输入你的问题，服务端将返回真实回答。', style: TextStyle(fontSize:13, color: AppColors.muted), textAlign: TextAlign.center),
+          const Text('在下方输入你的问题，服务端将返回回答。', style: TextStyle(fontSize:13, color: AppColors.muted), textAlign: TextAlign.center),
           const SizedBox(height:12),
           Wrap(spacing:8, runSpacing:8, alignment: WrapAlignment.center, children:[
             _promptChip('帮我写一个 Dio 拦截器，支持 token 刷新'),

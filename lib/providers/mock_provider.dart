@@ -9,7 +9,7 @@ import 'ai_provider.dart';
 class MockProvider implements AIProvider {
   @override String get id => 'mock-dev-only';
   @override String get name => 'Mock (开发自检)';
-  @override Future<ChatResponse> chat({required List<ChatMessage> messages, required String model}) async => throw Exception('Mock 已禁用：请在设置页配置真实 Provider');
+  @override Future<ChatResponse> chat({required List<ChatMessage> messages, required String model}) async => throw Exception('Mock 已禁用：请在设置页配置 Provider');
   @override Stream<String> chatStream({required List<ChatMessage> messages, required String model}) => Stream.error(Exception('Mock 已禁用'));
   @override Future<ImageResponse> generateImage({required String prompt, required String model, String size='1024x1024'}) => throw Exception('Mock 已禁用');
   @override Future<VideoTask> generateVideo({required String prompt, required String model, String duration='10s'}) => throw Exception('Mock 已禁用');

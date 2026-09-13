@@ -134,7 +134,7 @@ class _ImagePageState extends ConsumerState<ImagePage> {
                   ),
                 ),
                 const SizedBox(height:8),
-                const Text('真实请求：POST 到你配置的 Image Endpoint，成功后返回真实 URL。失败会展示真实错误信息。', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted)),
+                const Text('POST 到你配置的 Image Endpoint，成功返回图片 URL，失败展示错误信息。', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted)),
               ]),
             ),
             const SizedBox(height:16),
@@ -153,7 +153,7 @@ class _ImagePageState extends ConsumerState<ImagePage> {
                   const SizedBox(height:12),
                   const Text('还没有生成', style: TextStyle(color: AppColors.muted, fontSize:13)),
                   const SizedBox(height:4),
-                  const Text('输入 Prompt 后点击“生成图片”，结果将真实来自服务端。', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted), textAlign: TextAlign.center),
+                  const Text('输入 Prompt 后点击“生成图片”，结果来自服务端。', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted), textAlign: TextAlign.center),
                 ]),
               )
             else
@@ -240,7 +240,7 @@ class _ImagePageState extends ConsumerState<ImagePage> {
             Image.memory(Uri.parse('data:image/png;base64,$url').data!.contentAsBytes(), fit: BoxFit.cover, errorBuilder: (c,e,s)=> Container(color: AppColors.surface2, child: const Icon(Icons.broken_image, color: AppColors.muted)))
           else
             Container(color: AppColors.surface2, child: const Icon(Icons.image_not_supported, color: AppColors.muted)),
-          Positioned(top:8,left:8, child: Container(padding: const EdgeInsets.symmetric(horizontal:8, vertical:4), decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(999)), child: const Text('真实返回', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:10, fontWeight: FontWeight.w700, color: Color(0xFF111827))))),
+          Positioned(top:8,left:8, child: Container(padding: const EdgeInsets.symmetric(horizontal:8, vertical:4), decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(999)), child: const Text('已完成', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:10, fontWeight: FontWeight.w700, color: Color(0xFF111827))))),
           Positioned(bottom:8,left:8,right:8, child: Row(children:[
             Expanded(child: Container(padding: const EdgeInsets.symmetric(horizontal:8, vertical:4), decoration: BoxDecoration(color: const Color(0xCC1A2230), borderRadius: BorderRadius.circular(999), border: Border.all(color: AppColors.border)), child: Text('${t.model} · ${t.size}', style: const TextStyle(fontFamily:'JetBrainsMono', fontSize:10, color: AppColors.muted), overflow: TextOverflow.ellipsis))),
             const SizedBox(width:6),

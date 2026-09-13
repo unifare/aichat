@@ -1,4 +1,4 @@
-
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../core/api/api_client.dart';
 import '../models/chat_message.dart';
@@ -33,7 +33,6 @@ class CompatibleProvider implements AIProvider {
   }
 
   @override Stream<String> chatStream({required List<ChatMessage> messages, required String model}) async* {
-    // 优先尝试真实 SSE 流式
     final dio = client.dio;
     try{
       final resp = await dio.post(
@@ -41,29 +40,66 @@ class CompatibleProvider implements AIProvider {
         data: {'model': model, 'messages': messages.map((m)=>{'role':m.role.name,'content':m.content}).toList(), 'stream': true},
         options: Options(responseType: ResponseType.plain),
       );
-      // 若服务端返回流式文本，尝试按 SSE 解析；否则回退
       final data = resp.data;
       if(data is String && data.contains('data:')){
         String acc='';
-        for(final line in data.split('\n')){
-          final t=line.trim();
+        bool gotContent=false;
+        for(final raw in data.split('\n')){
+          final t=raw.trim();
           if(!t.startsWith('data:')) continue;
           final payload=t.substring(5).trim();
-          if(payload=='[DONE]') break;
-          acc += payload;
+          if(payload.isEmpty || payload=='[DONE]') continue;
+          Map<String,dynamic>? obj;
+          try{
+            final v = jsonDecode(payload);
+            if(v is Map<String,dynamic>) obj=v;
+            else if(v is Map) obj=Map<String,dynamic>.from(v);
+          }catch(_){ continue; }
+          if(obj==null) continue;
+          final content = _extractDeltaContent(obj);
+          if(content==null || content.isEmpty) continue;
+          acc += content;
+          gotContent=true;
           yield acc;
         }
-        if(acc.isNotEmpty) return;
+        if(gotContent) return;
       }
     }catch(_){
-      // 回退到非流式逐字 yield，保证调用方仍能流式展示真实内容
+      // fallback to non-stream
     }
     final res = await chat(messages: messages, model: model);
-    // 真实内容一次性拿到后，按字符增量 yield，仅为打字机效果，不伪造内容
     for(int i=0;i<res.content.length;i++){
       await Future.delayed(const Duration(milliseconds: 12));
       yield res.content.substring(0,i+1);
     }
+  }
+
+  String? _extractDeltaContent(Map<String,dynamic> obj){
+    final choices = obj['choices'];
+    if(choices is List && choices.isNotEmpty){
+      final c0 = choices[0];
+      if(c0 is Map){
+        final delta = c0['delta'];
+        if(delta is Map){
+          final cc = delta['content'];
+          if(cc is String) return cc;
+          final tc = delta['text'];
+          if(tc is String) return tc;
+        }
+        final text = c0['text'];
+        if(text is String) return text;
+        final msg = c0['message'];
+        if(msg is Map){
+          final mc = msg['content'];
+          if(mc is String) return mc;
+        }
+        final content = c0['content'];
+        if(content is String) return content;
+      }
+    }
+    final direct = obj['content'];
+    if(direct is String) return direct;
+    return null;
   }
 
   @override Future<ImageResponse> generateImage({required String prompt, required String model, String size='1024x1024'}) async {
@@ -102,13 +138,11 @@ class CompatibleProvider implements AIProvider {
       await client.getJson('/models');
       return true;
     }catch(_){
-      // 降级：尝试 chat 模型的轻量探测
       try{ await client.postJson(config.chatEndpoint, {'model': config.chatModel, 'messages':[{'role':'user','content':'ping'}], 'max_tokens':1}); return true; }catch(_){ return false; }
     }
   }
 }
 
-/// 未配置时的占位 Provider，调用即抛真实错误，不返回假数据
 class UnconfiguredProvider implements AIProvider {
   final String reason;
   UnconfiguredProvider(this.reason);

@@ -137,7 +137,7 @@ class _VideoPageState extends ConsumerState<VideoPage> {
                 const SizedBox(height:12),
                 SizedBox(width: double.infinity, child: FilledButton.icon(onPressed: hasProvider? _generate: null, icon: const Icon(Icons.play_arrow, size:18), label: const Text('生成视频'), style: FilledButton.styleFrom(backgroundColor: AppColors.accent, foregroundColor: Color(0xFF111827), disabledBackgroundColor: AppColors.surface2, padding: const EdgeInsets.symmetric(vertical:12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))))),
                 const SizedBox(height:8),
-                const Text('真实异步：POST 创建 task_id → 每 3 秒轮询 getVideoTask → 完成后返回 video_url。进度与状态均来自服务端。', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted)),
+                const Text('异步：POST 创建 task_id → 每 3 秒轮询 → 完成后返回 video_url。进度与状态来自服务端。', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted)),
               ]),
             ),
             const SizedBox(height:16),
@@ -160,7 +160,7 @@ class _VideoPageState extends ConsumerState<VideoPage> {
                   const SizedBox(height:12),
                   const Text('还没有视频任务', style: TextStyle(color: AppColors.muted, fontSize:13)),
                   const SizedBox(height:4),
-                  const Text('输入 Prompt 后点击“生成视频”，任务状态将真实轮询。', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted), textAlign: TextAlign.center),
+                  const Text('输入 Prompt 后点击“生成视频”，任务状态将自动轮询。', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: AppColors.muted), textAlign: TextAlign.center),
                 ]),
               )
             else
@@ -253,7 +253,7 @@ class _VideoPageState extends ConsumerState<VideoPage> {
                           const SizedBox(height:8),
                           Text('VIDEO READY · ${t.duration}', style: const TextStyle(fontFamily:'JetBrainsMono', fontWeight: FontWeight.w700, fontSize:13)),
                           const SizedBox(height:4),
-                          Text('${t.model} · 真实返回', style: const TextStyle(fontSize:12, color: AppColors.muted), textAlign: TextAlign.center),
+                          Text('${t.model} · 已完成', style: const TextStyle(fontSize:12, color: AppColors.muted), textAlign: TextAlign.center),
                           if(t.videoUrl!=null) ...[
                             const SizedBox(height:8),
                             SelectableText(t.videoUrl!, style: const TextStyle(fontFamily:'JetBrainsMono', fontSize:10, color: AppColors.muted), maxLines:2),

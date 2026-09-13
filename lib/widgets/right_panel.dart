@@ -67,9 +67,9 @@ class RightPanel extends ConsumerWidget {
         ]);
       default:
         return const Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
-          Text('本应用不含任何假数据。所有对话、图片、视频均来自你配置的真实 Endpoint。', style: TextStyle(fontSize:12, height:1.6, color: Color(0xFF94A3B8))),
+          Text('所有对话、图片、视频均来自你配置的 Endpoint。', style: TextStyle(fontSize:12, height:1.6, color: Color(0xFF94A3B8))),
           SizedBox(height:12),
-          Text('抽象：AIProvider\nchat / chatStream / generateImage / generateVideo / getVideoTask / testConnection\n\n未配置时所有操作会返回真实错误，不会展示假成功。', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, height:1.6)),
+          Text('抽象：AIProvider\nchat / chatStream / generateImage / generateVideo / getVideoTask / testConnection\n\n未配置时操作将提示错误。', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, height:1.6)),
         ]);
     }
   }
