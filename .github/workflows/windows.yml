@@ -1,0 +1,46 @@
+name: Windows
+
+# Cloud build of the Windows desktop release.
+# Download the artifact and run on a Windows machine.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'windows/**'
+      - '.github/workflows/windows.yml'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.2'
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Build release
+        run: flutter build windows --release
+
+      - name: Package
+        run: |
+          $src = "build/windows\x64\runner\Release"
+          $dest = "aichat-windows.zip"
+          Compress-Archive -Path "$src\*" -DestinationPath $dest -Force
+
+      - name: Upload
+        uses: actions/upload-artifact@v5
+        with:
+          name: aichat-windows
+          path: aichat-windows.zip
+          if-no-files-found: error
