@@ -1,6 +1,5 @@
 
 import '../models/chat_message.dart';
-import '../models/image_task.dart';
 import '../models/video_task.dart';
 
 class ChatResponse {
