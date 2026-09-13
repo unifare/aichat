@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import '../../models/chat_message.dart';
 import '../../providers/app_providers.dart';
 import '../../app/theme.dart';
+import '../../widgets/expandable_panel.dart';
+import '../../core/utils/message_parser.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   const ChatPage({super.key});
@@ -22,6 +24,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   String? _selectedProviderId;
   bool _sending=false;
   StreamSubscription<String>? _sub;
+  String _pendingThinking='';
+  String _pendingCommand='';
 
   @override void initState(){ super.initState(); _input.addListener(()=> setState((){})); WidgetsBinding.instance.addPostFrameCallback((_){ _sync(); }); }
   void _sync(){
@@ -57,7 +61,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ref.read(conversationsProvider.notifier).newConversation();
       await Future.delayed(const Duration(milliseconds:50));
       convId = ref.read(activeConversationIdProvider) ?? ref.read(conversationsProvider).first.id;
-      // override provider if user had picked one before creating
       if(_selectedProviderId!=null){
         final m = configs.where((c)=>c.id==_selectedProviderId).firstOrNull?.chatModel ?? _selectedModel;
         ref.read(conversationsProvider.notifier).setProvider(convId, _selectedProviderId!, m.isNotEmpty? m: _selectedModel);
@@ -82,6 +85,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     _input.clear();
     setState(()=> _sending=true);
     ref.read(chatStreamingProvider.notifier).state=true;
+    _pendingThinking='';
+    _pendingCommand='';
 
     final assistantId = _uuid.v4();
     final placeholder = ChatMessage(id:assistantId, role: ChatRole.assistant, content:'', createdAt: DateTime.now(), model:_selectedModel);
@@ -99,7 +104,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       _sub = provider.chatStream(messages: trimmedHistory, model: _selectedModel).listen(
         (chunk){
           acc = chunk;
-          ref.read(conversationsProvider.notifier).updateLastAssistant(convId, acc);
+          final parsed = ParsedMessage.parse(acc, isStreaming: true);
+          _pendingThinking = parsed.thinking ?? '';
+          _pendingCommand = parsed.command ?? '';
+          ref.read(conversationsProvider.notifier).updateLastAssistant(
+            convId,
+            acc,
+            thinking: parsed.thinking,
+            command: parsed.command,
+          );
           if(_scroll.hasClients){
             WidgetsBinding.instance.addPostFrameCallback((_){
               if(_scroll.hasClients) _scroll.animateTo(_scroll.position.maxScrollExtent, duration: const Duration(milliseconds:120), curve: Curves.easeOut);
@@ -120,6 +133,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             done=true;
             if(acc.trim().isEmpty){
               ref.read(conversationsProvider.notifier).updateLastAssistant(convId, '（服务端返回空内容）');
+            } else {
+              final parsed = ParsedMessage.parse(acc, isStreaming: false);
+              ref.read(conversationsProvider.notifier).updateLastAssistant(
+                convId,
+                acc,
+                thinking: parsed.thinking,
+                command: parsed.command,
+              );
             }
             if(!completer.isCompleted) completer.complete();
           }
@@ -168,7 +189,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       final active = configs.where((c)=>c.id==activeId).firstOrNull ?? configs.first;
       WidgetsBinding.instance.addPostFrameCallback((_)=> setState(()=> _selectedProviderId= activeId ?? active.id));
     }
-    // sync provider dropdown to current conversation
     String? dropdownProviderId = _selectedProviderId;
     if(conv!=null) dropdownProviderId = conv.providerId;
 
@@ -203,7 +223,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
           const SizedBox(width:8),
           if(hasProvider) ...[
-            // Provider switcher
             Container(
               padding: const EdgeInsets.symmetric(horizontal:8, vertical:2),
               decoration: BoxDecoration(color: AppColors.surface2, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.border)),
@@ -271,7 +290,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   final isLast = i==conv.messages.length-1;
                   final isStreamingLast = isLast && msg.role==ChatRole.assistant && streaming && msg.content.isEmpty;
                   if(isStreamingLast){
-                    return const Align(alignment: Alignment.centerLeft, child: _TypingIndicator());
+                    return Align(alignment: Alignment.centerLeft, child: _TypingIndicator(thinking: _pendingThinking, command: _pendingCommand));
                   }
                   return _bubble(msg, isLast && streaming);
                 },
@@ -395,6 +414,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   Widget _bubble(ChatMessage msg, bool isStreaming){
     final isUser = msg.role==ChatRole.user;
+    final parsed = isUser
+        ? ParsedMessage(cleanContent: msg.content)
+        : ParsedMessage.parse(
+            msg.content,
+            explicitThinking: msg.thinking,
+            explicitCommand: msg.command,
+            isStreaming: isStreaming,
+          );
+
     return Align(
       alignment: isUser? Alignment.centerRight: Alignment.centerLeft,
       child: Container(
@@ -412,22 +440,44 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             const SizedBox(width:4),
             Text(isUser? '你 · ${_fmt(msg.createdAt)}': 'AI · ${msg.model??'—'} · ${_fmt(msg.createdAt)}', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:11, color: isUser? const Color(0xB2111827): AppColors.muted)),
             const Spacer(),
-            if(!isUser && msg.content.isNotEmpty)
+            if(!isUser && (parsed.cleanContent.isNotEmpty || msg.content.isNotEmpty))
               InkWell(
                 onTap: ()async{
-                  await Clipboard.setData(ClipboardData(text: msg.content));
+                  final textToCopy = parsed.cleanContent.isNotEmpty ? parsed.cleanContent : msg.content;
+                  await Clipboard.setData(ClipboardData(text: textToCopy));
                   if(!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制')));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制正文')));
                 },
                 child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.copy, size:14, color: AppColors.muted)),
               ),
           ]),
           const SizedBox(height:6),
-          if(msg.content.isEmpty && !isUser && isStreaming)
-            const Row(children:[ SizedBox(width:14,height:14, child: CircularProgressIndicator(strokeWidth:2, color: AppColors.accent)), SizedBox(width:8), Text('正在生成…', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:12, color: AppColors.muted))])
-          else if(msg.content.contains('```') || msg.content.contains('**') || msg.content.contains('`'))
+          if(!isUser && parsed.thinking != null && parsed.thinking!.isNotEmpty)
+            ExpandablePanel(
+              title: '思考过程',
+              content: parsed.thinking!,
+              icon: Icons.psychology_outlined,
+              isLive: parsed.isThinkingOngoing,
+              initiallyExpanded: parsed.isThinkingOngoing,
+              maxHeight: 130.0,
+            ),
+          if(!isUser && parsed.command != null && parsed.command!.isNotEmpty)
+            ExpandablePanel(
+              title: '执行命令',
+              content: parsed.command!,
+              icon: Icons.terminal_rounded,
+              isCommand: true,
+              initiallyExpanded: false,
+              maxHeight: 120.0,
+            ),
+          if(parsed.cleanContent.isEmpty && !isUser && isStreaming)
+            if(!parsed.isThinkingOngoing)
+              const Row(children:[ SizedBox(width:14,height:14, child: CircularProgressIndicator(strokeWidth:2, color: AppColors.accent)), SizedBox(width:8), Text('正在生成…', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:12, color: AppColors.muted))])
+            else
+              const SizedBox.shrink()
+          else if(parsed.cleanContent.contains('```') || parsed.cleanContent.contains('**') || parsed.cleanContent.contains('`'))
             MarkdownBody(
-              data: msg.content,
+              data: parsed.cleanContent,
               styleSheet: MarkdownStyleSheet(
                 p: TextStyle(color: isUser? const Color(0xFF111827): AppColors.fg, fontSize:14, height:1.6),
                 code: const TextStyle(backgroundColor: Color(0xFF101727), color: Color(0xFFE2E8F0), fontFamily:'JetBrainsMono', fontSize:12),
@@ -436,9 +486,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               ),
               selectable: true,
             )
-          else
-            SelectableText(msg.content.isEmpty? '…': msg.content, style: TextStyle(color: isUser? const Color(0xFF111827): AppColors.fg, fontSize:14, height:1.6)),
-          if(isStreaming && msg.content.isNotEmpty)
+          else if(parsed.cleanContent.isNotEmpty)
+            SelectableText(parsed.cleanContent, style: TextStyle(color: isUser? const Color(0xFF111827): AppColors.fg, fontSize:14, height:1.6))
+          else if(!isUser && parsed.thinking == null && parsed.command == null)
+            SelectableText(isStreaming ? '…' : '（无内容）', style: TextStyle(color: isUser? const Color(0xFF111827): AppColors.fg, fontSize:14, height:1.6)),
+          if(isStreaming && parsed.cleanContent.isNotEmpty)
             Container(width:8,height:14, margin: const EdgeInsets.only(top:4), decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(2))),
         ]),
       ),
@@ -449,15 +501,22 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 }
 
 class _TypingIndicator extends StatelessWidget {
-  const _TypingIndicator();
+  final String thinking;
+  final String command;
+  const _TypingIndicator({this.thinking='', this.command=''});
   @override Widget build(BuildContext context){
     return Container(
       padding: const EdgeInsets.symmetric(horizontal:14, vertical:10),
       decoration: BoxDecoration(color: AppColors.surface2, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
-      child: const Row(mainAxisSize: MainAxisSize.min, children:[
+      child: Row(mainAxisSize: MainAxisSize.min, children:[
         SizedBox(width:16,height:16, child: CircularProgressIndicator(strokeWidth:2, color: AppColors.accent)),
-        SizedBox(width:8),
+        const SizedBox(width:8),
         Text('正在生成…', style: TextStyle(fontFamily:'JetBrainsMono', fontSize:12, color: AppColors.muted)),
+        if(thinking.isNotEmpty || command.isNotEmpty) ...[
+          const SizedBox(width:8),
+          if(thinking.isNotEmpty) const Icon(Icons.lightbulb_outline, size:14, color: Color(0xFFF59E0B)),
+          if(command.isNotEmpty) const Icon(Icons.terminal, size:14, color: Color(0xFF60A5FA)),
+        ],
       ]),
     );
   }

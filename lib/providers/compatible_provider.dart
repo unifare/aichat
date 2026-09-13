@@ -45,6 +45,7 @@ class CompatibleProvider implements AIProvider {
       if(body==null) throw Exception('empty stream');
       String acc='';
       bool gotContent=false;
+      bool inReasoning=false;
       String buffer='';
       await for(final chunk in body.stream){
         buffer += utf8.decode(chunk, allowMalformed: true);
@@ -65,15 +66,33 @@ class CompatibleProvider implements AIProvider {
             else if(v is Map) obj=Map<String,dynamic>.from(v);
           }catch(_){ continue; }
           if(obj==null) continue;
-          final content = _extractDeltaContent(obj);
-          if(content==null || content.isEmpty) continue;
-          // stop check
+          final delta = _extractDelta(obj);
+          if(delta.reasoning != null && delta.reasoning!.isNotEmpty){
+            if(!inReasoning){
+              inReasoning = true;
+              acc += '<think>';
+            }
+            acc += delta.reasoning!;
+            gotContent = true;
+            yield acc;
+          }
+          if(delta.content != null && delta.content!.isNotEmpty){
+            if(inReasoning){
+              inReasoning = false;
+              acc += '</think>\n';
+            }
+            acc += delta.content!;
+            gotContent = true;
+            yield acc;
+          }
           final finish = _extractFinish(obj);
-          acc += content;
-          gotContent=true;
-          yield acc;
           if(finish) break;
         }
+      }
+      if(inReasoning){
+        inReasoning = false;
+        acc += '</think>\n';
+        yield acc;
       }
       // tail buffer without trailing newline
       final tail = buffer.trim();
@@ -107,36 +126,46 @@ class CompatibleProvider implements AIProvider {
     }
   }
 
-  String? _extractDeltaContent(Map<String,dynamic> obj){
+  ({String? content, String? reasoning}) _extractDelta(Map<String,dynamic> obj){
     final choices = obj['choices'];
     if(choices is List && choices.isNotEmpty){
       final c0 = choices[0];
       if(c0 is Map){
         final delta = c0['delta'];
         if(delta is Map){
-          final cc = delta['content'];
-          if(cc is String) return cc;
-          final tc = delta['text'];
-          if(tc is String) return tc;
           final rc = delta['reasoning_content'];
-          if(rc is String && rc.isNotEmpty) return rc;
+          final cc = delta['content'];
+          final tc = delta['text'];
+          return (
+            content: (cc is String && cc.isNotEmpty) ? cc : ((tc is String && tc.isNotEmpty) ? tc : null),
+            reasoning: (rc is String && rc.isNotEmpty) ? rc : null,
+          );
         }
         final text = c0['text'];
-        if(text is String) return text;
+        if(text is String && text.isNotEmpty) return (content: text, reasoning: null);
         final msg = c0['message'];
         if(msg is Map){
           final mc = msg['content'];
-          if(mc is String) return mc;
+          final mrc = msg['reasoning_content'];
+          return (
+            content: (mc is String && mc.isNotEmpty) ? mc : null,
+            reasoning: (mrc is String && mrc.isNotEmpty) ? mrc : null,
+          );
         }
         final content = c0['content'];
-        if(content is String) return content;
+        if(content is String && content.isNotEmpty) return (content: content, reasoning: null);
       }
     }
     final direct = obj['content'];
-    if(direct is String) return direct;
+    if(direct is String && direct.isNotEmpty) return (content: direct, reasoning: null);
     final txt = obj['text'];
-    if(txt is String) return txt;
-    return null;
+    if(txt is String && txt.isNotEmpty) return (content: txt, reasoning: null);
+    return (content: null, reasoning: null);
+  }
+
+  String? _extractDeltaContent(Map<String,dynamic> obj){
+    final d = _extractDelta(obj);
+    return d.content ?? d.reasoning;
   }
   bool _extractFinish(Map<String,dynamic> obj){
     try{

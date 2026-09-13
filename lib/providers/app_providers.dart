@@ -79,6 +79,15 @@ class ConversationsNotifier extends StateNotifier<List<Conversation>> {
   }
   Future<void> _save() async => await LocalStorage.saveConversations(state);
 
+  void setThinkingCommand(String convId, String thinking, String command){
+    state = [
+      for(final c in state)
+        if(c.id==convId) c.copyWith(thinking: thinking, command: command, updatedAt: DateTime.now())
+        else c
+    ];
+    _save();
+  }
+
   void newConversation(){
     final activeId = ref.read(activeProviderIdProvider);
     final configs = ref.read(providerConfigsProvider);
@@ -86,7 +95,7 @@ class ConversationsNotifier extends StateNotifier<List<Conversation>> {
     final model = configs.where((c)=>c.id==providerId).firstOrNull?.chatModel ?? 'gpt-4o';
     final id = _uuid.v4();
     final now = DateTime.now();
-    final c = Conversation(id:id, title:'新对话', createdAt: now, updatedAt: now, providerId: providerId, model: model);
+    final c = Conversation(id:id, title:'新对话', createdAt: now, updatedAt: now, providerId: providerId, model: model, thinking:'', command:'');
     state = [c, ...state];
     ref.read(activeConversationIdProvider.notifier).state = id;
     _save();
@@ -109,10 +118,21 @@ class ConversationsNotifier extends StateNotifier<List<Conversation>> {
     _save();
   }
 
-  void updateLastAssistant(String convId, String content){
+  void updateLastAssistant(String convId, String content, {String? thinking, String? command}){
     state = [
       for(final c in state)
-        if(c.id==convId && c.messages.isNotEmpty) c.copyWith(messages: [...c.messages.sublist(0, c.messages.length-1), ChatMessage(id:c.messages.last.id, role: ChatRole.assistant, content: content, createdAt: c.messages.last.createdAt, model: c.messages.last.model)], updatedAt: DateTime.now())
+        if(c.id==convId && c.messages.isNotEmpty)
+          c.copyWith(
+            messages: [
+              ...c.messages.sublist(0, c.messages.length - 1),
+              c.messages.last.copyWith(
+                content: content,
+                thinking: thinking ?? c.messages.last.thinking,
+                command: command ?? c.messages.last.command,
+              ),
+            ],
+            updatedAt: DateTime.now(),
+          )
         else c
     ];
     _save();
